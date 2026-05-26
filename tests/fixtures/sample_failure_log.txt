@@ -1,0 +1,14 @@
+2024-01-15 11:00:00.000 [NAS][UL] Attach Request IMSI=001010123456789
+2024-01-15 11:00:00.500 [NAS][DL] Attach Reject Cause #11 PLMN not allowed
+2024-01-15 11:00:05.000 [NAS][UL] Attach Request IMSI=001010123456789
+2024-01-15 11:00:05.500 [NAS][DL] Attach Reject Cause #11 PLMN not allowed
+2024-01-15 11:00:10.000 [NAS][UL] Attach Request IMSI=001010123456789
+2024-01-15 11:00:10.500 [NAS][DL] Attach Reject Cause #22 Congestion
+2024-01-15 11:00:15.000 [RRC][UL] RRCConnectionReestablishmentRequest failureCause=t310-Expiry
+2024-01-15 11:00:15.200 [RRC][DL] RRCConnectionReestablishmentReject
+2024-01-15 11:01:00.000 [NAS][UL] Authentication Request
+2024-01-15 11:01:00.100 [NAS][UL] Authentication Failure
+2024-01-15 11:01:00.200 [NAS][DL] Authentication Request
+2024-01-15 11:01:00.300 [NAS][UL] Authentication Failure
+2024-01-15 11:01:00.400 [NAS][DL] Authentication Request
+2024-01-15 11:01:00.500 [NAS][UL] Authentication Failure

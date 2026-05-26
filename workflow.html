@@ -1,0 +1,1128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>3GPP UE Log Analyzer — Tool Workflow</title>
+<style>
+  :root {
+    --bg:        #0D1117;
+    --surface:   #161B22;
+    --border:    #30363D;
+    --accent:    #2F81F7;
+    --accent2:   #3FB950;
+    --warn:      #D29922;
+    --err:       #F85149;
+    --crit:      #BC8CFF;
+    --text:      #E6EDF3;
+    --muted:     #8B949E;
+    --nas:       #2F81F7;
+    --rrc:       #3FB950;
+    --mac:       #D29922;
+    --phy:       #F85149;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    font-size: 14px;
+    line-height: 1.6;
+  }
+
+  /* ── Header ── */
+  header {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 20px 40px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+  header .logo {
+    width: 44px; height: 44px;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 22px;
+  }
+  header h1 { font-size: 20px; font-weight: 700; }
+  header p  { color: var(--muted); font-size: 13px; }
+
+  /* ── Navigation tabs ── */
+  nav {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    padding: 0 40px;
+    gap: 4px;
+  }
+  nav button {
+    background: none; border: none; cursor: pointer;
+    color: var(--muted);
+    padding: 12px 18px;
+    font-size: 13px;
+    border-bottom: 2px solid transparent;
+    transition: color .2s, border-color .2s;
+  }
+  nav button.active, nav button:hover {
+    color: var(--text);
+    border-bottom-color: var(--accent);
+  }
+
+  /* ── Page ── */
+  main { max-width: 1200px; margin: 0 auto; padding: 32px 40px; }
+
+  .section { display: none; }
+  .section.active { display: block; }
+
+  h2 {
+    font-size: 22px; font-weight: 700;
+    margin-bottom: 8px;
+    display: flex; align-items: center; gap: 10px;
+  }
+  h2 .tag {
+    font-size: 11px; font-weight: 600;
+    padding: 2px 8px; border-radius: 20px;
+    background: var(--accent); color: #fff;
+    vertical-align: middle;
+  }
+  .subtitle { color: var(--muted); margin-bottom: 28px; }
+
+  /* ── Pipeline flow ── */
+  .pipeline {
+    display: flex;
+    align-items: stretch;
+    gap: 0;
+    margin-bottom: 40px;
+    overflow-x: auto;
+    padding-bottom: 8px;
+  }
+  .pipe-step {
+    flex: 1; min-width: 140px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 18px 14px;
+    text-align: center;
+    position: relative;
+    transition: border-color .2s, transform .15s;
+    cursor: default;
+  }
+  .pipe-step:hover { border-color: var(--accent); transform: translateY(-2px); }
+  .pipe-step:not(:last-child)::after {
+    content: "→";
+    position: absolute;
+    right: -18px; top: 50%;
+    transform: translateY(-50%);
+    color: var(--muted);
+    font-size: 18px;
+    z-index: 1;
+  }
+  .pipe-step + .pipe-step { margin-left: 24px; }
+  .pipe-step .icon { font-size: 28px; margin-bottom: 8px; }
+  .pipe-step .name { font-weight: 700; font-size: 13px; margin-bottom: 4px; }
+  .pipe-step .desc { color: var(--muted); font-size: 11px; }
+  .pipe-step.nas  { border-top: 3px solid var(--nas); }
+  .pipe-step.rrc  { border-top: 3px solid var(--rrc); }
+  .pipe-step.kpi  { border-top: 3px solid var(--warn); }
+  .pipe-step.ui   { border-top: 3px solid var(--crit); }
+  .pipe-step.db   { border-top: 3px solid var(--muted); }
+
+  /* ── Architecture diagram ── */
+  .arch {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 12px;
+    margin-bottom: 40px;
+  }
+  .arch-layer {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 16px 20px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+  .arch-layer-label {
+    font-weight: 700; font-size: 12px;
+    text-transform: uppercase; letter-spacing: 1px;
+    min-width: 100px;
+    color: var(--muted);
+  }
+  .arch-boxes {
+    display: flex; flex-wrap: wrap; gap: 8px; flex: 1;
+  }
+  .arch-box {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 6px 12px;
+    font-size: 12px;
+    white-space: nowrap;
+    transition: border-color .2s;
+    cursor: default;
+  }
+  .arch-box:hover { border-color: var(--accent); color: var(--accent); }
+  .arch-layer.l-ui    { border-left: 3px solid var(--crit); }
+  .arch-layer.l-ana   { border-left: 3px solid var(--warn); }
+  .arch-layer.l-parse { border-left: 3px solid var(--nas); }
+  .arch-layer.l-ingest{ border-left: 3px solid var(--rrc); }
+  .arch-layer.l-store { border-left: 3px solid var(--muted); }
+
+  .arch-arrow {
+    text-align: center; color: var(--muted);
+    font-size: 20px; line-height: 1;
+    margin: -6px 0;
+  }
+
+  /* ── Cards grid ── */
+  .cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 16px;
+    margin-bottom: 40px;
+  }
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 20px;
+    transition: border-color .2s;
+  }
+  .card:hover { border-color: var(--accent); }
+  .card-icon { font-size: 26px; margin-bottom: 10px; }
+  .card h3 { font-size: 14px; font-weight: 700; margin-bottom: 6px; }
+  .card p  { color: var(--muted); font-size: 12px; }
+  .card ul { color: var(--muted); font-size: 12px; padding-left: 16px; margin-top: 6px; }
+  .card ul li { margin-bottom: 3px; }
+
+  /* ── Event severity badges ── */
+  .badge {
+    display: inline-block;
+    padding: 2px 8px; border-radius: 4px;
+    font-size: 11px; font-weight: 700;
+    text-transform: uppercase; letter-spacing: .5px;
+  }
+  .badge.info     { background: #1a3a1f; color: var(--accent2); }
+  .badge.warning  { background: #3a2e00; color: var(--warn); }
+  .badge.error    { background: #3a0d0d; color: var(--err); }
+  .badge.critical { background: #2a1a3a; color: var(--crit); }
+
+  /* ── Table ── */
+  table {
+    width: 100%; border-collapse: collapse;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+    margin-bottom: 28px;
+    font-size: 13px;
+  }
+  th {
+    background: var(--bg);
+    color: var(--muted);
+    font-size: 11px; text-transform: uppercase; letter-spacing: .8px;
+    padding: 10px 16px;
+    text-align: left;
+    border-bottom: 1px solid var(--border);
+  }
+  td {
+    padding: 10px 16px;
+    border-bottom: 1px solid var(--border);
+    vertical-align: top;
+  }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: rgba(47,129,247,.05); }
+  td code {
+    background: var(--bg);
+    padding: 1px 6px; border-radius: 4px;
+    font-size: 11px; font-family: monospace;
+    color: var(--accent);
+  }
+
+  /* ── KPI cards ── */
+  .kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 12px;
+    margin-bottom: 28px;
+  }
+  .kpi-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 16px;
+    text-align: center;
+  }
+  .kpi-card .kpi-val {
+    font-size: 28px; font-weight: 800;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .kpi-card .kpi-name { color: var(--muted); font-size: 11px; margin-top: 4px; }
+  .kpi-card .kpi-unit { color: var(--muted); font-size: 10px; }
+
+  /* ── Flow diagram (MSC) ── */
+  .msc-wrap {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 24px;
+    overflow-x: auto;
+    margin-bottom: 28px;
+  }
+  .msc-entities {
+    display: flex; gap: 0;
+    margin-bottom: 8px;
+  }
+  .msc-entity {
+    flex: 1; text-align: center;
+    font-size: 12px; font-weight: 700;
+    padding: 6px 4px;
+    background: var(--accent);
+    border-radius: 6px;
+    margin: 0 30px;
+  }
+  .msc-lanes {
+    position: relative;
+    min-height: 380px;
+  }
+  .msc-vline {
+    position: absolute;
+    top: 0; bottom: 0;
+    width: 1px;
+    border-left: 1px dashed var(--border);
+  }
+  .msc-msg {
+    position: relative;
+    display: flex;
+    align-items: center;
+    height: 38px;
+    font-size: 11px;
+  }
+  .msc-msg .arrow {
+    position: absolute;
+    height: 1.5px;
+    top: 50%;
+  }
+  .msc-msg .arrow::after {
+    content: "";
+    position: absolute;
+    right: -1px; top: -4px;
+    border: 4px solid transparent;
+  }
+  .msc-msg .lbl {
+    position: absolute;
+    top: 2px;
+    font-size: 10px;
+    white-space: nowrap;
+    background: var(--surface);
+    padding: 0 4px;
+  }
+  .msc-msg .ts {
+    position: absolute;
+    left: 4px;
+    color: var(--muted);
+    font-size: 9px;
+    font-family: monospace;
+  }
+
+  /* ── Anomaly rules table ── */
+  .rule-row td:first-child { font-weight: 700; color: var(--text); }
+
+  /* ── File formats ── */
+  .fmt-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 12px;
+    margin-bottom: 28px;
+  }
+  .fmt-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 14px 16px;
+    display: flex; align-items: center; gap: 12px;
+  }
+  .fmt-card .ext {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 4px 8px;
+    font-family: monospace;
+    font-size: 11px;
+    color: var(--accent);
+    min-width: 70px;
+    text-align: center;
+  }
+  .fmt-card .info { font-size: 12px; color: var(--muted); }
+  .fmt-card .title { font-size: 12px; font-weight: 700; margin-bottom: 2px; }
+
+  /* ── Cause codes ── */
+  .cc-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 28px;
+  }
+  .cc-box {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 16px;
+  }
+  .cc-box h4 {
+    font-size: 13px; font-weight: 700;
+    margin-bottom: 10px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; gap: 8px;
+  }
+  .cc-row {
+    display: flex; gap: 8px;
+    font-size: 12px;
+    padding: 4px 0;
+    border-bottom: 1px solid var(--bg);
+  }
+  .cc-num {
+    font-family: monospace;
+    color: var(--err);
+    min-width: 32px;
+    font-weight: 700;
+  }
+  .cc-desc { color: var(--muted); }
+
+  /* ── Section headings ── */
+  .section-title {
+    font-size: 16px; font-weight: 700;
+    margin: 28px 0 12px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; gap: 8px;
+  }
+  .section-title::before {
+    content: "";
+    display: inline-block;
+    width: 3px; height: 16px;
+    background: var(--accent);
+    border-radius: 2px;
+  }
+
+  /* ── Scrollbar ── */
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">📡</div>
+  <div>
+    <h1>3GPP UE Log Analyzer</h1>
+    <p>Tool Workflow Reference &nbsp;·&nbsp; LTE &amp; NR Protocol Analysis</p>
+  </div>
+</header>
+
+<nav>
+  <button class="active" onclick="show('overview')">Overview</button>
+  <button onclick="show('architecture')">Architecture</button>
+  <button onclick="show('formats')">Log Formats</button>
+  <button onclick="show('parsers')">Parsers</button>
+  <button onclick="show('analysis')">Analysis Engine</button>
+  <button onclick="show('kpis')">KPIs</button>
+  <button onclick="show('anomalies')">Anomaly Detection</button>
+  <button onclick="show('ui')">UI Layout</button>
+  <button onclick="show('causecodes')">Cause Codes</button>
+</nav>
+
+<main>
+
+<!-- ══════════════════════════════════════════════════════════════ OVERVIEW -->
+<section id="overview" class="section active">
+  <h2>End-to-End Workflow <span class="tag">Overview</span></h2>
+  <p class="subtitle">How a raw log file becomes classified events, KPIs, and anomaly alerts.</p>
+
+  <div class="pipeline">
+    <div class="pipe-step">
+      <div class="icon">📂</div>
+      <div class="name">Load File</div>
+      <div class="desc">.txt .log .pcap .dlf .isf</div>
+    </div>
+    <div class="pipe-step">
+      <div class="icon">🔍</div>
+      <div class="name">Detect Format</div>
+      <div class="desc">Magic bytes, extension, content heuristics</div>
+    </div>
+    <div class="pipe-step nas">
+      <div class="icon">📦</div>
+      <div class="name">Parse &amp; Enrich</div>
+      <div class="desc">NAS · RRC · PHY field extraction</div>
+    </div>
+    <div class="pipe-step rrc">
+      <div class="icon">🏷️</div>
+      <div class="name">Classify Events</div>
+      <div class="desc">Success · Failure · HO · RLF</div>
+    </div>
+    <div class="pipe-step kpi">
+      <div class="icon">📊</div>
+      <div class="name">Compute KPIs</div>
+      <div class="desc">ASR · Setup time · RSRP avg</div>
+    </div>
+    <div class="pipe-step">
+      <div class="icon">🚨</div>
+      <div class="name">Detect Anomalies</div>
+      <div class="desc">7 rule-based detectors</div>
+    </div>
+    <div class="pipe-step db">
+      <div class="icon">🗄️</div>
+      <div class="name">Store in SQLite</div>
+      <div class="desc">Entries · Events · KPIs · Meas</div>
+    </div>
+    <div class="pipe-step ui">
+      <div class="icon">🖥️</div>
+      <div class="name">Render in UI</div>
+      <div class="desc">Timeline · MSC · Dashboard</div>
+    </div>
+  </div>
+
+  <div class="section-title">Key Capabilities</div>
+  <div class="cards">
+    <div class="card">
+      <div class="card-icon">📡</div>
+      <h3>Multi-Layer Protocol Analysis</h3>
+      <p>Parses all 3GPP radio stack layers from a single log file.</p>
+      <ul>
+        <li>NAS — TS 24.301 (LTE) / 24.501 (NR)</li>
+        <li>RRC — TS 36.331 (LTE) / 38.331 (NR)</li>
+        <li>PHY — RSRP, RSRQ, SINR, CQI, MCS, BLER</li>
+      </ul>
+    </div>
+    <div class="card">
+      <div class="card-icon">⚡</div>
+      <h3>Real-time Event Stream</h3>
+      <p>Processes entries as they are read — no need to load the entire file into memory. Handles 100MB+ logs.</p>
+    </div>
+    <div class="card">
+      <div class="card-icon">📉</div>
+      <h3>KPI Dashboard</h3>
+      <p>Automatically computes Attach Success Rate, Handover Success Rate, Avg RSRP/RSRQ/SINR, setup times, RLF rate.</p>
+    </div>
+    <div class="card">
+      <div class="card-icon">🔮</div>
+      <h3>Anomaly Detection</h3>
+      <p>7 sliding-window rules fire automatically: repeated failures, auth loops, ping-pong HO, RLF clusters, signaling storms.</p>
+    </div>
+    <div class="card">
+      <div class="card-icon">📋</div>
+      <h3>Cause Code Decoder</h3>
+      <p>Full EMM, 5GMM, ESM, and 5GSM cause code lookup tables mapped to human-readable descriptions from the spec.</p>
+    </div>
+    <div class="card">
+      <div class="card-icon">🗺️</div>
+      <h3>Message Sequence Chart</h3>
+      <p>Renders a 3GPP-style ladder diagram (UE ↔ eNB/gNB ↔ MME/AMF ↔ SGW/UPF) with failure arrows highlighted in red.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════ ARCHITECTURE -->
+<section id="architecture" class="section">
+  <h2>Architecture <span class="tag">Layers</span></h2>
+  <p class="subtitle">Four clean layers with one-way data flow. Each layer only depends on the one below it.</p>
+
+  <div class="arch">
+    <div class="arch-layer l-ui">
+      <div class="arch-layer-label">UI Layer</div>
+      <div class="arch-boxes">
+        <div class="arch-box">MainWindow</div>
+        <div class="arch-box">TimelineView</div>
+        <div class="arch-box">DetailPanel</div>
+        <div class="arch-box">FilterPanel</div>
+        <div class="arch-box">KPIDashboard</div>
+        <div class="arch-box">MSCView</div>
+        <div class="arch-box">FilePanel</div>
+      </div>
+    </div>
+    <div class="arch-arrow">↑ renders / queries</div>
+    <div class="arch-layer l-ana">
+      <div class="arch-layer-label">Analysis Engine</div>
+      <div class="arch-boxes">
+        <div class="arch-box">Event Classifier</div>
+        <div class="arch-box">KPI Engine</div>
+        <div class="arch-box">Anomaly Detector</div>
+        <div class="arch-box">Cause Code Lookup</div>
+      </div>
+    </div>
+    <div class="arch-arrow">↑ enriched entries</div>
+    <div class="arch-layer l-parse">
+      <div class="arch-layer-label">Parser Layer</div>
+      <div class="arch-boxes">
+        <div class="arch-box">NAS Parser (TS 24.301/501)</div>
+        <div class="arch-box">RRC Parser (TS 36/38.331)</div>
+        <div class="arch-box">PHY Parser</div>
+      </div>
+    </div>
+    <div class="arch-arrow">↑ raw LogEntry stream</div>
+    <div class="arch-layer l-ingest">
+      <div class="arch-layer-label">Ingestion Layer</div>
+      <div class="arch-boxes">
+        <div class="arch-box">Format Detector</div>
+        <div class="arch-box">Text Reader</div>
+        <div class="arch-box">PCAP Reader</div>
+        <div class="arch-box">QXDM Reader (stub)</div>
+      </div>
+    </div>
+    <div class="arch-arrow">↑ read</div>
+    <div class="arch-layer l-store">
+      <div class="arch-layer-label">Storage</div>
+      <div class="arch-boxes">
+        <div class="arch-box">SQLite (SQLAlchemy)</div>
+        <div class="arch-box">log_entries</div>
+        <div class="arch-box">events</div>
+        <div class="arch-box">kpis</div>
+        <div class="arch-box">radio_measurements</div>
+        <div class="arch-box">decoded_fields</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section-title">Data Model — LogEntry</div>
+  <table>
+    <tr><th>Field</th><th>Type</th><th>Description</th></tr>
+    <tr><td><code>timestamp</code></td><td>datetime</td><td>Parsed from log line — supports multiple timestamp formats</td></tr>
+    <tr><td><code>layer</code></td><td>str</td><td>NAS · RRC · MAC · PHY · GTP · UNKNOWN</td></tr>
+    <tr><td><code>direction</code></td><td>str</td><td>UL (uplink) · DL (downlink) · INTERNAL</td></tr>
+    <tr><td><code>message_type</code></td><td>str</td><td>Matched against 40+ known NAS/RRC message names</td></tr>
+    <tr><td><code>raw_bytes</code></td><td>bytes</td><td>Hex payload if present in source log</td></tr>
+    <tr><td><code>decoded</code></td><td>dict</td><td>Extracted IEs: imsi, apn, cause_code, pci, rsrp, …</td></tr>
+    <tr><td><code>source_file</code></td><td>str</td><td>Original file path for traceability</td></tr>
+    <tr><td><code>source_line</code></td><td>int</td><td>Line number in source file</td></tr>
+  </table>
+</section>
+
+<!-- ═════════════════════════════════════════════════════════ LOG FORMATS -->
+<section id="formats" class="section">
+  <h2>Supported Log Formats <span class="tag">Ingestion</span></h2>
+  <p class="subtitle">Auto-detected by magic bytes and content heuristics — no manual format selection needed.</p>
+
+  <div class="fmt-grid">
+    <div class="fmt-card">
+      <div class="ext">.txt / .log</div>
+      <div><div class="title">Plain Text</div><div class="info">Timestamp + layer tag + message name per line</div></div>
+    </div>
+    <div class="fmt-card">
+      <div class="ext">.pcap</div>
+      <div><div class="title">Wireshark PCAP</div><div class="info">LTE/NR dissected packets via scapy</div></div>
+    </div>
+    <div class="fmt-card">
+      <div class="ext">.pcapng</div>
+      <div><div class="title">PCAP-NG</div><div class="info">Wireshark next-gen capture format</div></div>
+    </div>
+    <div class="fmt-card">
+      <div class="ext">.dlf / .isf</div>
+      <div><div class="title">Qualcomm QXDM</div><div class="info">Binary format — export to text via QCAT first</div></div>
+    </div>
+    <div class="fmt-card">
+      <div class="ext">.hdf</div>
+      <div><div class="title">QXDM HDF</div><div class="info">Qualcomm diagnostic log — export to text</div></div>
+    </div>
+    <div class="fmt-card">
+      <div class="ext">AT cmds</div>
+      <div><div class="title">AT Command Log</div><div class="info">Detected by AT+ / +CEREG / +CREG patterns</div></div>
+    </div>
+    <div class="fmt-card">
+      <div class="ext">hex dump</div>
+      <div><div class="title">Hex Dump</div><div class="info">0000: AA BB CC … format, auto-parsed</div></div>
+    </div>
+    <div class="fmt-card">
+      <div class="ext">logcat</div>
+      <div><div class="title">Android Logcat</div><div class="info">Modem log lines with timestamps</div></div>
+    </div>
+  </div>
+
+  <div class="section-title">Format Detection Logic</div>
+  <table>
+    <tr><th>Check</th><th>Condition</th><th>Result</th></tr>
+    <tr><td>Extension</td><td><code>.pcap</code> / <code>.pcapng</code></td><td>→ PCAP reader</td></tr>
+    <tr><td>Extension</td><td><code>.dlf</code> / <code>.isf</code> / <code>.hdf</code></td><td>→ QXDM reader</td></tr>
+    <tr><td>Magic bytes</td><td><code>D4C3B2A1</code> / <code>A1B2C3D4</code> / <code>0A0D0D0A</code></td><td>→ PCAP reader</td></tr>
+    <tr><td>Content scan</td><td><code>AT+</code> / <code>+CEREG</code> / <code>+CREG</code> in first 4KB</td><td>→ AT command reader</td></tr>
+    <tr><td>Content scan</td><td>Hex dump pattern <code>XXXX: AA BB …</code></td><td>→ Hex reader</td></tr>
+    <tr><td>Default</td><td>Everything else</td><td>→ Text reader</td></tr>
+  </table>
+</section>
+
+<!-- ══════════════════════════════════════════════════════════════ PARSERS -->
+<section id="parsers" class="section">
+  <h2>Protocol Parsers <span class="tag">Parsing</span></h2>
+  <p class="subtitle">Three layer-specific parsers enrich each LogEntry with decoded fields extracted via regex and ASN.1 patterns.</p>
+
+  <div class="section-title">NAS Parser — TS 24.301 (LTE) + TS 24.501 (NR)</div>
+  <div class="cards">
+    <div class="card">
+      <div class="card-icon">🔐</div>
+      <h3>EMM Messages (LTE)</h3>
+      <ul>
+        <li>Attach Request / Accept / Reject / Complete</li>
+        <li>Detach Request / Accept</li>
+        <li>Authentication Request / Response / Failure</li>
+        <li>Security Mode Command / Complete / Reject</li>
+        <li>TAU Request / Accept / Reject / Complete</li>
+        <li>Identity Request / Response</li>
+      </ul>
+    </div>
+    <div class="card">
+      <div class="card-icon">📶</div>
+      <h3>5GMM Messages (NR)</h3>
+      <ul>
+        <li>Registration Request / Accept / Reject / Complete</li>
+        <li>Deregistration Request / Accept</li>
+        <li>Authentication Request / Response / Result</li>
+        <li>Security Mode Command / Complete / Reject</li>
+        <li>Configuration Update Command / Complete</li>
+      </ul>
+    </div>
+    <div class="card">
+      <div class="card-icon">🌐</div>
+      <h3>ESM / 5GSM</h3>
+      <ul>
+        <li>PDN Connectivity Request / Accept / Reject</li>
+        <li>PDU Session Establishment Request / Accept / Reject</li>
+        <li>Activate / Deactivate EPS Bearer Context</li>
+        <li>Bearer Resource Allocation</li>
+      </ul>
+    </div>
+    <div class="card">
+      <div class="card-icon">🏷️</div>
+      <h3>Extracted IEs</h3>
+      <ul>
+        <li>IMSI / GUTI / SUCI</li>
+        <li>APN / DNN</li>
+        <li>MCC / MNC / TAC</li>
+        <li>Bearer ID (EBI)</li>
+        <li>PDN Type (IPv4/v6/v4v6)</li>
+        <li>Security algorithms (EEA/EIA/NEA/NIA)</li>
+        <li>Cause code + description</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="section-title">RRC Parser — TS 36.331 (LTE) + TS 38.331 (NR)</div>
+  <div class="cards">
+    <div class="card">
+      <div class="card-icon">📡</div>
+      <h3>LTE RRC Messages</h3>
+      <ul>
+        <li>RRCConnectionRequest / Setup / SetupComplete</li>
+        <li>RRCConnectionReconfiguration / Complete</li>
+        <li>RRCConnectionRelease</li>
+        <li>RRCConnectionReestablishment*</li>
+        <li>MeasurementReport</li>
+        <li>UECapabilityEnquiry / Information</li>
+      </ul>
+    </div>
+    <div class="card">
+      <div class="card-icon">🔵</div>
+      <h3>NR RRC Messages</h3>
+      <ul>
+        <li>RRCSetup / Request / Complete</li>
+        <li>RRCReconfiguration / Complete</li>
+        <li>RRCRelease</li>
+        <li>RRCReestablishment*</li>
+        <li>MeasurementReport</li>
+      </ul>
+    </div>
+    <div class="card">
+      <div class="card-icon">📍</div>
+      <h3>Extracted RRC Fields</h3>
+      <ul>
+        <li>PCI (Physical Cell ID)</li>
+        <li>EARFCN / ARFCN</li>
+        <li>RSRP / RSRQ / SINR</li>
+        <li>Measurement ID</li>
+        <li>Band number</li>
+        <li>Failure cause</li>
+        <li>Handover target PCI</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="section-title">PHY Parser — Radio Measurements</div>
+  <table>
+    <tr><th>Metric</th><th>Field</th><th>Unit</th><th>Description</th></tr>
+    <tr><td>RSRP</td><td><code>rsrp</code></td><td>dBm</td><td>Reference Signal Received Power — serving cell signal strength</td></tr>
+    <tr><td>RSRQ</td><td><code>rsrq</code></td><td>dB</td><td>Reference Signal Received Quality — signal quality relative to interference</td></tr>
+    <tr><td>SINR</td><td><code>sinr</code></td><td>dB</td><td>Signal-to-Interference-plus-Noise Ratio</td></tr>
+    <tr><td>CQI</td><td><code>cqi</code></td><td>0–15</td><td>Channel Quality Indicator reported by UE</td></tr>
+    <tr><td>MCS</td><td><code>mcs</code></td><td>0–31</td><td>Modulation and Coding Scheme assigned by eNB/gNB</td></tr>
+    <tr><td>BLER</td><td><code>bler</code></td><td>%</td><td>Block Error Rate on the PDSCH/PUSCH</td></tr>
+    <tr><td>PCI</td><td><code>pci</code></td><td>0–503</td><td>Physical Cell ID of the measured cell</td></tr>
+    <tr><td>EARFCN</td><td><code>earfcn</code></td><td>—</td><td>E-UTRA Absolute Radio Frequency Channel Number</td></tr>
+  </table>
+</section>
+
+<!-- ════════════════════════════════════════════════════════════ ANALYSIS -->
+<section id="analysis" class="section">
+  <h2>Analysis Engine <span class="tag">Classification</span></h2>
+  <p class="subtitle">Every LogEntry is tested against 30+ rules to assign an event type and severity.</p>
+
+  <div class="section-title">Event Taxonomy</div>
+  <table>
+    <tr><th>Category</th><th>Event Type</th><th>Severity</th><th>Trigger</th></tr>
+    <tr><td>Connection</td><td>Attach Success</td><td><span class="badge info">INFO</span></td><td>Attach Accept message</td></tr>
+    <tr><td>Connection</td><td>Attach Failure</td><td><span class="badge error">ERROR</span></td><td>Attach Reject message</td></tr>
+    <tr><td>Connection</td><td>Registration Success</td><td><span class="badge info">INFO</span></td><td>Registration Accept (NR)</td></tr>
+    <tr><td>Connection</td><td>Registration Failure</td><td><span class="badge error">ERROR</span></td><td>Registration Reject (NR)</td></tr>
+    <tr><td>Session</td><td>PDN Session Success</td><td><span class="badge info">INFO</span></td><td>PDN Connectivity Accept</td></tr>
+    <tr><td>Session</td><td>PDU Session Success</td><td><span class="badge info">INFO</span></td><td>PDU Session Establishment Accept</td></tr>
+    <tr><td>Session</td><td>PDN/PDU Session Failure</td><td><span class="badge error">ERROR</span></td><td>PDN/PDU Reject message</td></tr>
+    <tr><td>Security</td><td>Authentication Success</td><td><span class="badge info">INFO</span></td><td>Authentication Response</td></tr>
+    <tr><td>Security</td><td>Authentication Failure</td><td><span class="badge error">ERROR</span></td><td>Authentication Failure message</td></tr>
+    <tr><td>Security</td><td>Security Mode Success</td><td><span class="badge info">INFO</span></td><td>Security Mode Complete</td></tr>
+    <tr><td>Mobility</td><td>TAU Success</td><td><span class="badge info">INFO</span></td><td>TAU Accept</td></tr>
+    <tr><td>Mobility</td><td>TAU Failure</td><td><span class="badge error">ERROR</span></td><td>TAU Reject</td></tr>
+    <tr><td>Mobility</td><td>Handover Complete</td><td><span class="badge info">INFO</span></td><td>RRC Reconfiguration Complete (with HO)</td></tr>
+    <tr><td>Radio</td><td>RRC Setup Success</td><td><span class="badge info">INFO</span></td><td>RRCConnectionSetupComplete</td></tr>
+    <tr><td>Radio</td><td>RRC Reestablishment</td><td><span class="badge warning">WARNING</span></td><td>RRCConnectionReestablishmentComplete</td></tr>
+    <tr><td>Radio</td><td>RRC Connection Reject</td><td><span class="badge error">ERROR</span></td><td>RRCConnectionReject</td></tr>
+    <tr><td>Radio</td><td>Reestablishment Reject</td><td><span class="badge error">ERROR</span></td><td>RRCReestablishmentReject</td></tr>
+  </table>
+
+  <div class="section-title">Message Sequence Chart — Sample Attach Procedure</div>
+  <div class="msc-wrap">
+    <svg viewBox="0 0 800 460" width="100%" style="font-family:Arial,sans-serif;font-size:11px;">
+      <!-- Entity headers -->
+      <rect x="50"  y="10" width="120" height="28" rx="6" fill="#2F81F7"/>
+      <rect x="250" y="10" width="120" height="28" rx="6" fill="#388E3C"/>
+      <rect x="450" y="10" width="120" height="28" rx="6" fill="#6A1B9A"/>
+      <rect x="650" y="10" width="120" height="28" rx="6" fill="#BF360C"/>
+      <text x="110" y="29" text-anchor="middle" fill="white" font-weight="bold">UE</text>
+      <text x="310" y="29" text-anchor="middle" fill="white" font-weight="bold">eNB/gNB</text>
+      <text x="510" y="29" text-anchor="middle" fill="white" font-weight="bold">MME/AMF</text>
+      <text x="710" y="29" text-anchor="middle" fill="white" font-weight="bold">SGW/UPF</text>
+      <!-- Lifelines -->
+      <line x1="110" y1="38" x2="110" y2="450" stroke="#30363D" stroke-dasharray="4,3"/>
+      <line x1="310" y1="38" x2="310" y2="450" stroke="#30363D" stroke-dasharray="4,3"/>
+      <line x1="510" y1="38" x2="510" y2="450" stroke="#30363D" stroke-dasharray="4,3"/>
+      <line x1="710" y1="38" x2="710" y2="450" stroke="#30363D" stroke-dasharray="4,3"/>
+      <!-- Messages -->
+      <!-- 1. Attach Request UE → MME -->
+      <line x1="110" y1="78" x2="506" y2="78" stroke="#2F81F7" stroke-width="1.5" marker-end="url(#arr-blue)"/>
+      <text x="308" y="72" text-anchor="middle" fill="#2F81F7">Attach Request</text>
+      <text x="20" y="82" fill="#8B949E" font-size="9">10:23:44.001</text>
+      <!-- 2. Auth Request MME → UE -->
+      <line x1="506" y1="112" x2="114" y2="112" stroke="#BC8CFF" stroke-width="1.5" marker-end="url(#arr-purple)"/>
+      <text x="308" y="106" text-anchor="middle" fill="#BC8CFF">Authentication Request</text>
+      <text x="20" y="116" fill="#8B949E" font-size="9">10:23:44.120</text>
+      <!-- 3. Auth Response UE → MME -->
+      <line x1="110" y1="146" x2="506" y2="146" stroke="#2F81F7" stroke-width="1.5" marker-end="url(#arr-blue)"/>
+      <text x="308" y="140" text-anchor="middle" fill="#2F81F7">Authentication Response</text>
+      <text x="20" y="150" fill="#8B949E" font-size="9">10:23:44.135</text>
+      <!-- 4. Security Mode Command MME → UE -->
+      <line x1="506" y1="180" x2="114" y2="180" stroke="#BC8CFF" stroke-width="1.5" marker-end="url(#arr-purple)"/>
+      <text x="308" y="174" text-anchor="middle" fill="#BC8CFF">Security Mode Command</text>
+      <text x="20" y="184" fill="#8B949E" font-size="9">10:23:44.200</text>
+      <!-- 5. Security Mode Complete UE → MME -->
+      <line x1="110" y1="214" x2="506" y2="214" stroke="#2F81F7" stroke-width="1.5" marker-end="url(#arr-blue)"/>
+      <text x="308" y="208" text-anchor="middle" fill="#2F81F7">Security Mode Complete</text>
+      <text x="20" y="218" fill="#8B949E" font-size="9">10:23:44.215</text>
+      <!-- 6. MME → SGW Create Session -->
+      <line x1="510" y1="248" x2="646" y2="248" stroke="#F85149" stroke-width="1.5" marker-end="url(#arr-red)"/>
+      <text x="578" y="242" text-anchor="middle" fill="#F85149">Create Session Req</text>
+      <text x="20" y="252" fill="#8B949E" font-size="9">10:23:44.280</text>
+      <!-- 7. SGW → MME response -->
+      <line x1="646" y1="282" x2="514" y2="282" stroke="#F85149" stroke-width="1.5" marker-end="url(#arr-red)"/>
+      <text x="578" y="276" text-anchor="middle" fill="#F85149">Create Session Resp</text>
+      <text x="20" y="286" fill="#8B949E" font-size="9">10:23:44.320</text>
+      <!-- 8. Attach Accept -->
+      <line x1="506" y1="316" x2="114" y2="316" stroke="#3FB950" stroke-width="2" marker-end="url(#arr-green)"/>
+      <text x="308" y="310" text-anchor="middle" fill="#3FB950" font-weight="bold">Attach Accept</text>
+      <text x="20" y="320" fill="#8B949E" font-size="9">10:23:44.350</text>
+      <!-- 9. Attach Complete -->
+      <line x1="110" y1="350" x2="506" y2="350" stroke="#2F81F7" stroke-width="1.5" marker-end="url(#arr-blue)"/>
+      <text x="308" y="344" text-anchor="middle" fill="#2F81F7">Attach Complete</text>
+      <text x="20" y="354" fill="#8B949E" font-size="9">10:23:44.360</text>
+      <!-- 10. Activate Bearer -->
+      <line x1="506" y1="384" x2="114" y2="384" stroke="#3FB950" stroke-width="1.5" marker-end="url(#arr-green)"/>
+      <text x="308" y="378" text-anchor="middle" fill="#3FB950">Activate Default EPS Bearer</text>
+      <text x="20" y="388" fill="#8B949E" font-size="9">10:23:44.400</text>
+      <!-- Arrowhead markers -->
+      <defs>
+        <marker id="arr-blue"   markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto"><polygon points="0,0 6,3 0,6" fill="#2F81F7"/></marker>
+        <marker id="arr-green"  markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto"><polygon points="0,0 6,3 0,6" fill="#3FB950"/></marker>
+        <marker id="arr-purple" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto"><polygon points="0,0 6,3 0,6" fill="#BC8CFF"/></marker>
+        <marker id="arr-red"    markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto"><polygon points="0,0 6,3 0,6" fill="#F85149"/></marker>
+      </defs>
+    </svg>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════════════════════ KPIS -->
+<section id="kpis" class="section">
+  <h2>KPI Engine <span class="tag">Metrics</span></h2>
+  <p class="subtitle">Computed automatically from classified events and radio measurements over configurable time windows.</p>
+
+  <div class="kpi-grid">
+    <div class="kpi-card"><div class="kpi-val">ASR</div><div class="kpi-name">Attach Success Rate</div><div class="kpi-unit">%</div></div>
+    <div class="kpi-card"><div class="kpi-val">HSR</div><div class="kpi-name">Handover Success Rate</div><div class="kpi-unit">%</div></div>
+    <div class="kpi-card"><div class="kpi-val">RLF</div><div class="kpi-name">Radio Link Failures</div><div class="kpi-unit">count/hr</div></div>
+    <div class="kpi-card"><div class="kpi-val">RSRP</div><div class="kpi-name">Average RSRP</div><div class="kpi-unit">dBm</div></div>
+    <div class="kpi-card"><div class="kpi-val">RSRQ</div><div class="kpi-name">Average RSRQ</div><div class="kpi-unit">dB</div></div>
+    <div class="kpi-card"><div class="kpi-val">SINR</div><div class="kpi-name">Average SINR</div><div class="kpi-unit">dB</div></div>
+    <div class="kpi-card"><div class="kpi-val">AST</div><div class="kpi-name">Avg Attach Setup Time</div><div class="kpi-unit">ms</div></div>
+    <div class="kpi-card"><div class="kpi-val">PST</div><div class="kpi-name">PDU Session Setup Time</div><div class="kpi-unit">ms</div></div>
+  </div>
+
+  <div class="section-title">KPI Formulas</div>
+  <table>
+    <tr><th>KPI</th><th>Formula</th><th>Unit</th><th>Notes</th></tr>
+    <tr><td>Attach Success Rate</td><td>Attach Accept / Attach Request × 100</td><td>%</td><td>Covers both EMM Attach and 5GMM Registration</td></tr>
+    <tr><td>Attach Setup Time</td><td>T(PDN Accept) − T(Attach Request)</td><td>ms</td><td>Filtered: 0 &lt; t &lt; 60 000 ms</td></tr>
+    <tr><td>Handover Success Rate</td><td>HO Complete / HO Command × 100</td><td>%</td><td>HO Command = RRC Reconfiguration with HO IE</td></tr>
+    <tr><td>RLF Count</td><td>Count(RLF events)</td><td>count</td><td>T310 expiry + RLC max retx + RACH failure</td></tr>
+    <tr><td>Reestablishment Rate</td><td>Count(RRCReestablishmentComplete)</td><td>count</td><td>Indicates radio instability</td></tr>
+    <tr><td>Avg RSRP</td><td>Mean(all RSRP samples)</td><td>dBm</td><td>&gt; −80 dBm excellent, −80 to −100 good, &lt; −100 poor</td></tr>
+    <tr><td>Avg RSRQ</td><td>Mean(all RSRQ samples)</td><td>dB</td><td>&gt; −10 dB good, &lt; −15 dB poor</td></tr>
+    <tr><td>Avg SINR</td><td>Mean(all SINR samples)</td><td>dB</td><td>&gt; 20 dB excellent, &lt; 0 dB very poor</td></tr>
+    <tr><td>PDU Setup Time</td><td>T(PDU Accept) − T(PDU Request)</td><td>ms</td><td>5GS PDU session establishment latency</td></tr>
+  </table>
+</section>
+
+<!-- ══════════════════════════════════════════════════════════ ANOMALIES -->
+<section id="anomalies" class="section">
+  <h2>Anomaly Detection <span class="tag">Rules Engine</span></h2>
+  <p class="subtitle">7 sliding-window rules run automatically after every load. Rules are configurable in <code>config/anomaly_rules.yaml</code>.</p>
+
+  <table>
+    <tr><th>Rule</th><th>Trigger Condition</th><th>Window</th><th>Severity</th><th>Why It Matters</th></tr>
+    <tr class="rule-row">
+      <td>Repeated Attach Failures</td>
+      <td>≥ 3 Attach / Registration Failures</td>
+      <td>5 min</td>
+      <td><span class="badge error">ERROR</span></td>
+      <td>SIM rejected, PLMN barred, or network congestion loop</td>
+    </tr>
+    <tr class="rule-row">
+      <td>Authentication Loop</td>
+      <td>≥ 3 Authentication Failures</td>
+      <td>2 min</td>
+      <td><span class="badge error">ERROR</span></td>
+      <td>AKA vector mismatch, SIM issue, or MITM attack</td>
+    </tr>
+    <tr class="rule-row">
+      <td>Ping-Pong Handover</td>
+      <td>≥ 3 HOs between same 2 PCIs</td>
+      <td>2 min</td>
+      <td><span class="badge warning">WARNING</span></td>
+      <td>A3/A5 event thresholds too aggressive, coverage hole</td>
+    </tr>
+    <tr class="rule-row">
+      <td>RLF Cluster</td>
+      <td>≥ 2 Radio Link Failures</td>
+      <td>5 min</td>
+      <td><span class="badge error">ERROR</span></td>
+      <td>Coverage gap, interference, or hardware fault</td>
+    </tr>
+    <tr class="rule-row">
+      <td>Signaling Storm</td>
+      <td>&gt; 50 signaling events</td>
+      <td>10 s</td>
+      <td><span class="badge warning">WARNING</span></td>
+      <td>Stuck state machine, retry loop, or test harness issue</td>
+    </tr>
+    <tr class="rule-row">
+      <td>Short-lived Bearer</td>
+      <td>Bearer active &lt; 2 s then deactivated</td>
+      <td>—</td>
+      <td><span class="badge warning">WARNING</span></td>
+      <td>Misconfigured APN, quota exceeded, or SGW reject</td>
+    </tr>
+    <tr class="rule-row">
+      <td>Timer Expiry</td>
+      <td>NAS timer expiry keyword in log</td>
+      <td>—</td>
+      <td><span class="badge error">ERROR</span></td>
+      <td>T3410 / T3411 / T3402 — attach procedure stuck</td>
+    </tr>
+  </table>
+</section>
+
+<!-- ══════════════════════════════════════════════════════════════ UI -->
+<section id="ui" class="section">
+  <h2>UI Layout <span class="tag">PyQt6</span></h2>
+  <p class="subtitle">Three-panel layout with a swim-lane timeline, message detail tree, KPI dashboard, and MSC ladder diagram.</p>
+
+  <div class="section-title">Window Layout</div>
+  <pre style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:20px;font-size:12px;color:var(--muted);overflow-x:auto;line-height:1.8;">
+┌──────────────────────────────────────────────────────────────────┐
+│  File | View | Filters | Analysis | Export | Help                │
+├──────────────┬───────────────────────────────────────────────────┤
+│  Files       │              Timeline View (swim-lane)            │
+│  Panel       │  NAS  ─●──────────────●──────●─────             │
+│              │  RRC  ────●──────────────────────●──             │
+│  log1.txt    │  MAC  ─────────────────────────────              │
+│  log2.pcap   │  PHY  ─────────────────────────────              │
+├──────────────┤                                                   │
+│  Filters     ├───────────────────────────────────────────────────┤
+│              │  [ Message Detail ] [ KPI Dashboard ] [ MSC ]    │
+│  Layer ▼     │                                                   │
+│  Severity ▼  │  [INFO] Attach Success — 10:23:44.350            │
+│  Msg Type ▼  │  ├── Layer: NAS  Direction: DL                   │
+│  Time range  │  ├── Cause Code: —                               │
+│              │  └── Decoded Fields                              │
+│  [Apply]     │      ├── GUTI: 001010-0-0001                     │
+│  [Reset]     │      ├── TAC: 1234                               │
+│              │      └── Security: EEA2, EIA2                    │
+└──────────────┴───────────────────────────────────────────────────┘</pre>
+
+  <div class="section-title">UI Components</div>
+  <div class="cards">
+    <div class="card">
+      <div class="card-icon">📅</div>
+      <h3>Timeline View</h3>
+      <ul>
+        <li>Swim-lane per protocol layer</li>
+        <li>Color-coded by severity (green/yellow/red/purple)</li>
+        <li>Scroll wheel zoom, drag-to-pan</li>
+        <li>Click marker → populate Detail Panel</li>
+        <li>Fit-to-window button</li>
+      </ul>
+    </div>
+    <div class="card">
+      <div class="card-icon">🔎</div>
+      <h3>Filter Panel</h3>
+      <ul>
+        <li>Layer dropdown (NAS/RRC/MAC/PHY)</li>
+        <li>Severity dropdown</li>
+        <li>Message type with autocomplete</li>
+        <li>Start/End datetime pickers</li>
+        <li>Apply / Reset buttons</li>
+      </ul>
+    </div>
+    <div class="card">
+      <div class="card-icon">🌲</div>
+      <h3>Detail Panel</h3>
+      <ul>
+        <li>Severity badge + color header</li>
+        <li>Event metadata tree</li>
+        <li>Cause code highlighted in red</li>
+        <li>All decoded NAS/RRC fields</li>
+        <li>Raw hex payload (truncated)</li>
+      </ul>
+    </div>
+    <div class="card">
+      <div class="card-icon">📊</div>
+      <h3>KPI Dashboard</h3>
+      <ul>
+        <li>KPI summary cards (large numbers)</li>
+        <li>Severity distribution bar chart</li>
+        <li>Top failure cause codes</li>
+        <li>Radio measurement summary</li>
+      </ul>
+    </div>
+    <div class="card">
+      <div class="card-icon">🗺️</div>
+      <h3>MSC View</h3>
+      <ul>
+        <li>UE ↔ eNB/gNB ↔ MME/AMF ↔ SGW/UPF</li>
+        <li>Arrows colored by success/failure</li>
+        <li>Timestamps on left margin</li>
+        <li>Scroll and pan support</li>
+      </ul>
+    </div>
+    <div class="card">
+      <div class="card-icon">📤</div>
+      <h3>Export</h3>
+      <ul>
+        <li>Export filtered events → CSV</li>
+        <li>Export filtered events → JSON</li>
+        <li>Fields: timestamp, event type, severity, description, cause code</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════ CAUSE CODES -->
+<section id="causecodes" class="section">
+  <h2>Cause Code Reference <span class="tag">3GPP</span></h2>
+  <p class="subtitle">Automatically decoded from log messages. Full lookup tables for EMM (TS 24.301), 5GMM (TS 24.501), and ESM.</p>
+
+  <div class="cc-grid">
+    <div class="cc-box">
+      <h4>🔴 EMM Cause Codes — TS 24.301 §9.9.3.9</h4>
+      <div class="cc-row"><span class="cc-num">#2</span><span class="cc-desc">IMSI unknown in HSS</span></div>
+      <div class="cc-row"><span class="cc-num">#3</span><span class="cc-desc">Illegal UE</span></div>
+      <div class="cc-row"><span class="cc-num">#6</span><span class="cc-desc">Illegal ME</span></div>
+      <div class="cc-row"><span class="cc-num">#7</span><span class="cc-desc">EPS services not allowed</span></div>
+      <div class="cc-row"><span class="cc-num">#8</span><span class="cc-desc">EPS and non-EPS services not allowed</span></div>
+      <div class="cc-row"><span class="cc-num">#11</span><span class="cc-desc">PLMN not allowed</span></div>
+      <div class="cc-row"><span class="cc-num">#12</span><span class="cc-desc">Tracking area not allowed</span></div>
+      <div class="cc-row"><span class="cc-num">#13</span><span class="cc-desc">Roaming not allowed in this TA</span></div>
+      <div class="cc-row"><span class="cc-num">#14</span><span class="cc-desc">EPS services not allowed in this PLMN</span></div>
+      <div class="cc-row"><span class="cc-num">#15</span><span class="cc-desc">No suitable cells in tracking area</span></div>
+      <div class="cc-row"><span class="cc-num">#17</span><span class="cc-desc">Network failure</span></div>
+      <div class="cc-row"><span class="cc-num">#19</span><span class="cc-desc">ESM failure</span></div>
+      <div class="cc-row"><span class="cc-num">#22</span><span class="cc-desc">Congestion</span></div>
+      <div class="cc-row"><span class="cc-num">#25</span><span class="cc-desc">Not authorized for this CSG</span></div>
+    </div>
+    <div class="cc-box">
+      <h4>🟣 5GMM Cause Codes — TS 24.501 §9.11.3.2</h4>
+      <div class="cc-row"><span class="cc-num">#3</span><span class="cc-desc">Illegal UE</span></div>
+      <div class="cc-row"><span class="cc-num">#5</span><span class="cc-desc">PEI not accepted</span></div>
+      <div class="cc-row"><span class="cc-num">#7</span><span class="cc-desc">5GS services not allowed</span></div>
+      <div class="cc-row"><span class="cc-num">#9</span><span class="cc-desc">UE identity cannot be derived</span></div>
+      <div class="cc-row"><span class="cc-num">#10</span><span class="cc-desc">Implicitly deregistered</span></div>
+      <div class="cc-row"><span class="cc-num">#11</span><span class="cc-desc">PLMN not allowed</span></div>
+      <div class="cc-row"><span class="cc-num">#12</span><span class="cc-desc">Tracking area not allowed</span></div>
+      <div class="cc-row"><span class="cc-num">#13</span><span class="cc-desc">Roaming not allowed in this TA</span></div>
+      <div class="cc-row"><span class="cc-num">#15</span><span class="cc-desc">No suitable cells in tracking area</span></div>
+      <div class="cc-row"><span class="cc-num">#22</span><span class="cc-desc">Congestion</span></div>
+      <div class="cc-row"><span class="cc-num">#27</span><span class="cc-desc">N1 mode not allowed</span></div>
+      <div class="cc-row"><span class="cc-num">#31</span><span class="cc-desc">Redirection to EPC required</span></div>
+      <div class="cc-row"><span class="cc-num">#62</span><span class="cc-desc">No network slices available</span></div>
+      <div class="cc-row"><span class="cc-num">#76</span><span class="cc-desc">IAB node not authorized</span></div>
+    </div>
+    <div class="cc-box">
+      <h4>🟠 ESM Cause Codes — TS 24.301 §9.9.4.4</h4>
+      <div class="cc-row"><span class="cc-num">#26</span><span class="cc-desc">Insufficient resources</span></div>
+      <div class="cc-row"><span class="cc-num">#27</span><span class="cc-desc">Missing or unknown APN</span></div>
+      <div class="cc-row"><span class="cc-num">#28</span><span class="cc-desc">Unknown PDN type</span></div>
+      <div class="cc-row"><span class="cc-num">#29</span><span class="cc-desc">User authentication failed</span></div>
+      <div class="cc-row"><span class="cc-num">#30</span><span class="cc-desc">Request rejected by SGW or PGW</span></div>
+      <div class="cc-row"><span class="cc-num">#33</span><span class="cc-desc">Requested service option not subscribed</span></div>
+      <div class="cc-row"><span class="cc-num">#36</span><span class="cc-desc">Regular deactivation</span></div>
+      <div class="cc-row"><span class="cc-num">#48</span><span class="cc-desc">PDN type IPv4 only allowed</span></div>
+      <div class="cc-row"><span class="cc-num">#49</span><span class="cc-desc">PDN type IPv6 only allowed</span></div>
+      <div class="cc-row"><span class="cc-num">#53</span><span class="cc-desc">Multiple PDN connections not allowed</span></div>
+      <div class="cc-row"><span class="cc-num">#65</span><span class="cc-desc">Maximum number of EPS bearers reached</span></div>
+    </div>
+    <div class="cc-box">
+      <h4>🔵 RRC Failure Causes — TS 36.331</h4>
+      <div class="cc-row"><span class="cc-num">t310</span><span class="cc-desc">T310 timer expiry — serving cell out of sync</span></div>
+      <div class="cc-row"><span class="cc-num">rach</span><span class="cc-desc">Random access problem — PRACH failure</span></div>
+      <div class="cc-row"><span class="cc-num">rlc</span><span class="cc-desc">RLC max retransmissions reached</span></div>
+      <div class="cc-row"><span class="cc-num">scg</span><span class="cc-desc">SCG reconfiguration failure (EN-DC)</span></div>
+      <div class="cc-row"><span class="cc-num">srb3</span><span class="cc-desc">SRB3 integrity failure</span></div>
+      <div class="cc-row"><span class="cc-num">other</span><span class="cc-desc">Unspecified failure</span></div>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<script>
+function show(id) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  event.target.classList.add('active');
+}
+</script>
+</body>
+</html>

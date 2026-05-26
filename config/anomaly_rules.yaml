@@ -1,0 +1,29 @@
+rules:
+  repeated_attach_failures:
+    threshold: 3
+    window_seconds: 300
+    severity: ERROR
+
+  authentication_loop:
+    threshold: 3
+    window_seconds: 120
+    severity: ERROR
+
+  ping_pong_handover:
+    threshold: 3
+    window_seconds: 120
+    severity: WARNING
+
+  rlf_cluster:
+    threshold: 2
+    window_seconds: 300
+    severity: ERROR
+
+  signaling_storm:
+    threshold: 50
+    window_seconds: 10
+    severity: WARNING
+
+  short_lived_bearer_seconds:
+    threshold: 2
+    severity: WARNING

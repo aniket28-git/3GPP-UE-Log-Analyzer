@@ -1,0 +1,17 @@
+2024-01-15 10:23:44.001 [NAS][UL] Attach Request IMSI=001010123456789 PDN type=IPv4 APN=internet
+2024-01-15 10:23:44.120 [NAS][DL] Authentication Request
+2024-01-15 10:23:44.135 [NAS][UL] Authentication Response
+2024-01-15 10:23:44.200 [NAS][DL] Security Mode Command EEA2 EIA2
+2024-01-15 10:23:44.215 [NAS][UL] Security Mode Complete
+2024-01-15 10:23:44.350 [NAS][DL] Attach Accept GUTI=001010-0-0001 TAC=1234
+2024-01-15 10:23:44.360 [NAS][UL] Attach Complete
+2024-01-15 10:23:44.400 [NAS][DL] Activate Default EPS Bearer Context Request EBI=5 APN=internet
+2024-01-15 10:23:50.000 [RRC][DL] RRCConnectionSetup PCI=42 EARFCN=1850 RSRP=-85 RSRQ=-10
+2024-01-15 10:23:50.010 [RRC][UL] RRCConnectionSetupComplete
+2024-01-15 10:24:00.000 [NAS][UL] Tracking Area Update Request TAC=1234
+2024-01-15 10:24:00.100 [NAS][DL] Tracking Area Update Accept
+2024-01-15 10:25:00.000 [RRC][DL] MeasurementReport PCI=43 RSRP=-90 RSRQ=-12 SINR=8
+2024-01-15 10:25:10.000 [RRC][DL] RRCConnectionReconfiguration HandoverCommand targetPhysCellId=43
+2024-01-15 10:25:10.500 [RRC][UL] RRCConnectionReconfigurationComplete
+2024-01-15 10:30:00.000 [NAS][UL] Detach Request
+2024-01-15 10:30:00.200 [NAS][DL] Detach Accept
