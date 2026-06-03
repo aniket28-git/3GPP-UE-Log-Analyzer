@@ -1,0 +1,52 @@
+2024-03-14 06:00:00.000 [RRC][DL] RRCConnectionSetup PCI=20 EARFCN=1300 RSRP=-70 RSRQ=-8 SINR=18
+2024-03-14 06:00:00.015 [RRC][UL] RRCConnectionSetupComplete
+2024-03-14 06:00:00.050 [NAS][UL] Attach Request IMSI=001010300400500 PDN type=IPv4 APN=internet
+2024-03-14 06:00:00.200 [NAS][DL] Authentication Request
+2024-03-14 06:00:00.215 [NAS][UL] Authentication Response
+2024-03-14 06:00:00.250 [NAS][DL] Security Mode Command EEA2 EIA2
+2024-03-14 06:00:00.265 [NAS][UL] Security Mode Complete
+2024-03-14 06:00:00.360 [NAS][DL] Attach Accept GUTI=001010-0-0020 TAC=6001
+2024-03-14 06:00:00.370 [NAS][UL] Attach Complete
+2024-03-14 06:00:00.400 [NAS][DL] Activate Default EPS Bearer Context Request EBI=5 APN=internet
+2024-03-14 06:00:30.000 [PHY][DL] MeasurementReport PCI=20 RSRP=-71 RSRQ=-8 SINR=17 CQI=14 MCS=26 BLER=0.005
+2024-03-14 06:01:00.000 [PHY][DL] MeasurementReport PCI=20 RSRP=-73 RSRQ=-9 SINR=16 CQI=14 MCS=25 BLER=0.008
+2024-03-14 06:01:30.000 [PHY][DL] MeasurementReport PCI=20 RSRP=-75 RSRQ=-9 SINR=15 CQI=13 MCS=23 BLER=0.01
+2024-03-14 06:02:00.000 [RRC][DL] MeasurementReport PCI=21 RSRP=-78 RSRQ=-11 SINR=12
+2024-03-14 06:02:05.000 [RRC][DL] RRCConnectionReconfiguration HandoverCommand targetPhysCellId=21 EARFCN=1350
+2024-03-14 06:02:05.500 [RRC][UL] RRCConnectionReconfigurationComplete
+2024-03-14 06:02:30.000 [PHY][DL] MeasurementReport PCI=21 RSRP=-76 RSRQ=-10 SINR=14 CQI=13 MCS=22 BLER=0.012
+2024-03-14 06:03:00.000 [PHY][DL] MeasurementReport PCI=21 RSRP=-79 RSRQ=-11 SINR=12 CQI=11 MCS=19 BLER=0.02
+2024-03-14 06:04:00.000 [RRC][DL] MeasurementReport PCI=22 RSRP=-74 RSRQ=-9 SINR=15
+2024-03-14 06:04:05.000 [RRC][DL] RRCConnectionReconfiguration HandoverCommand targetPhysCellId=22 EARFCN=1400
+2024-03-14 06:04:05.500 [RRC][UL] RRCConnectionReconfigurationComplete
+2024-03-14 06:04:30.000 [PHY][DL] MeasurementReport PCI=22 RSRP=-72 RSRQ=-8 SINR=17 CQI=14 MCS=25 BLER=0.007
+2024-03-14 06:06:00.000 [NAS][UL] Tracking Area Update Request TAC=6002
+2024-03-14 06:06:00.120 [NAS][DL] Tracking Area Update Accept TAC=6002
+2024-03-14 06:06:30.000 [PHY][DL] MeasurementReport PCI=22 RSRP=-80 RSRQ=-12 SINR=10 CQI=10 MCS=16 BLER=0.04
+2024-03-14 06:07:00.000 [PHY][DL] MeasurementReport PCI=22 RSRP=-84 RSRQ=-13 SINR=7 CQI=8 MCS=12 BLER=0.08
+2024-03-14 06:08:00.000 [RRC][DL] MeasurementReport PCI=23 RSRP=-77 RSRQ=-10 SINR=13
+2024-03-14 06:08:05.000 [RRC][DL] RRCConnectionReconfiguration HandoverCommand targetPhysCellId=23 EARFCN=1450
+2024-03-14 06:08:07.000 [RRC][UL] RRCConnectionReestablishmentRequest failureCause=randomAccessProblem PCI=22 EARFCN=1400
+2024-03-14 06:08:07.500 [RRC][DL] RRCConnectionReestablishment PCI=22 EARFCN=1400
+2024-03-14 06:08:07.515 [RRC][UL] RRCConnectionReestablishmentComplete
+2024-03-14 06:08:08.000 [RRC][DL] RRCConnectionReconfiguration measConfig=setup
+2024-03-14 06:08:08.015 [RRC][UL] RRCConnectionReconfigurationComplete
+2024-03-14 06:09:00.000 [PHY][DL] MeasurementReport PCI=22 RSRP=-82 RSRQ=-12 SINR=9 CQI=9 MCS=14 BLER=0.05
+2024-03-14 06:10:00.000 [PHY][DL] MeasurementReport PCI=22 RSRP=-79 RSRQ=-11 SINR=11 CQI=11 MCS=18 BLER=0.03
+2024-03-14 06:12:00.000 [NAS][UL] Detach Request
+2024-03-14 06:12:00.200 [NAS][DL] Detach Accept
+2024-03-14 06:12:10.000 [RRC][DL] RRCConnectionRelease cause=other
+2024-03-14 06:15:00.000 [RRC][DL] RRCConnectionSetup PCI=23 EARFCN=1450 RSRP=-73 RSRQ=-9 SINR=16
+2024-03-14 06:15:00.015 [RRC][UL] RRCConnectionSetupComplete
+2024-03-14 06:15:00.050 [NAS][UL] Attach Request IMSI=001010300400501 PDN type=IPv4 APN=internet
+2024-03-14 06:15:00.200 [NAS][DL] Authentication Request
+2024-03-14 06:15:00.215 [NAS][UL] Authentication Response
+2024-03-14 06:15:00.250 [NAS][DL] Security Mode Command EEA2 EIA2
+2024-03-14 06:15:00.265 [NAS][UL] Security Mode Complete
+2024-03-14 06:15:00.360 [NAS][DL] Attach Accept GUTI=001010-0-0023 TAC=6002
+2024-03-14 06:15:00.370 [NAS][UL] Attach Complete
+2024-03-14 06:15:00.400 [NAS][DL] Activate Default EPS Bearer Context Request EBI=5 APN=internet
+2024-03-14 06:15:30.000 [PHY][DL] MeasurementReport PCI=23 RSRP=-74 RSRQ=-9 SINR=15 CQI=13 MCS=24 BLER=0.01
+2024-03-14 06:16:00.000 [PHY][DL] MeasurementReport PCI=23 RSRP=-76 RSRQ=-10 SINR=14 CQI=12 MCS=22 BLER=0.015
+2024-03-14 06:20:00.000 [NAS][UL] Detach Request
+2024-03-14 06:20:00.200 [NAS][DL] Detach Accept

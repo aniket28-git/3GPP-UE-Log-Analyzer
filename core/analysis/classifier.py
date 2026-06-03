@@ -4,6 +4,11 @@ from core.log_entry import LogEntry, AnalysisEvent
 
 # Maps (layer, message_type_substring) → (event_type, severity)
 _RULES: list[tuple[str, str, str, str]] = [
+    # NAS request events (needed for KPI rate calculations)
+    ("NAS", "attach request",         "Attach Request",          "INFO"),
+    ("NAS", "registration request",   "Registration Request",    "INFO"),
+    ("NAS", "detach request",         "Detach Request",          "INFO"),
+    ("NAS", "deregistration request", "Deregistration Request",  "INFO"),
     # NAS success events
     ("NAS", "attach accept",          "Attach Success",          "INFO"),
     ("NAS", "attach complete",        "Attach Complete",         "INFO"),

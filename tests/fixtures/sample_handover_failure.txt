@@ -1,0 +1,24 @@
+2024-03-11 09:00:00.000 [RRC][DL] RRCConnectionSetup PCI=42 EARFCN=1850 RSRP=-80 RSRQ=-10 SINR=10
+2024-03-11 09:00:00.015 [RRC][UL] RRCConnectionSetupComplete
+2024-03-11 09:00:00.050 [NAS][UL] Attach Request IMSI=001010987654321 PDN type=IPv4 APN=internet
+2024-03-11 09:00:00.250 [NAS][DL] Authentication Request
+2024-03-11 09:00:00.265 [NAS][UL] Authentication Response
+2024-03-11 09:00:00.300 [NAS][DL] Security Mode Command EEA2 EIA2
+2024-03-11 09:00:00.315 [NAS][UL] Security Mode Complete
+2024-03-11 09:00:00.420 [NAS][DL] Attach Accept GUTI=001010-0-0042 TAC=2001
+2024-03-11 09:00:00.430 [NAS][UL] Attach Complete
+2024-03-11 09:00:00.500 [NAS][DL] Activate Default EPS Bearer Context Request EBI=5 APN=internet
+2024-03-11 09:05:00.000 [PHY][DL] MeasurementReport PCI=42 RSRP=-88 RSRQ=-13 SINR=5 CQI=7 MCS=10 BLER=0.05
+2024-03-11 09:05:30.000 [PHY][DL] MeasurementReport PCI=42 RSRP=-94 RSRQ=-15 SINR=2 CQI=4 MCS=6 BLER=0.12
+2024-03-11 09:05:45.000 [PHY][DL] MeasurementReport PCI=42 RSRP=-98 RSRQ=-17 SINR=-1 CQI=3 MCS=4 BLER=0.25
+2024-03-11 09:06:00.000 [RRC][DL] MeasurementReport PCI=55 RSRP=-85 RSRQ=-12 SINR=6
+2024-03-11 09:06:05.000 [RRC][DL] RRCConnectionReconfiguration HandoverCommand targetPhysCellId=55 EARFCN=3050
+2024-03-11 09:06:05.100 [PHY][DL] MeasurementReport PCI=55 RSRP=-99 RSRQ=-18 SINR=-3 CQI=2 MCS=2 BLER=0.45
+2024-03-11 09:06:08.000 [RRC][UL] RRCConnectionReestablishmentRequest failureCause=t310-Expiry PCI=42 EARFCN=1850
+2024-03-11 09:06:08.200 [RRC][DL] RRCConnectionReestablishmentReject
+2024-03-11 09:06:09.000 [RRC][UL] RRCConnectionReestablishmentRequest failureCause=t310-Expiry PCI=55 EARFCN=3050
+2024-03-11 09:06:09.300 [RRC][DL] RRCConnectionReestablishmentReject
+2024-03-11 09:06:20.000 [RRC][DL] RRCConnectionSetup PCI=55 EARFCN=3050 RSRP=-87 RSRQ=-13 SINR=5
+2024-03-11 09:06:20.015 [RRC][UL] RRCConnectionSetupComplete
+2024-03-11 09:06:20.100 [NAS][UL] Tracking Area Update Request TAC=2002
+2024-03-11 09:06:20.300 [NAS][DL] Tracking Area Update Accept TAC=2002

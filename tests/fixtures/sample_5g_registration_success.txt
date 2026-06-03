@@ -1,0 +1,21 @@
+2024-03-10 08:00:00.000 [RRC][DL] RRCSetup PCI=101 EARFCN=632628 Band=78 RSRP=-72 RSRQ=-9 SINR=15
+2024-03-10 08:00:00.020 [RRC][UL] RRCSetupComplete
+2024-03-10 08:00:00.050 [NAS][UL] Registration Request type=initial SUCI=0011020012345678 MCC=001 MNC=01
+2024-03-10 08:00:00.250 [NAS][DL] Authentication Request 5G-AKA ngKSI=1
+2024-03-10 08:00:00.265 [NAS][UL] Authentication Response RES=deadbeefcafe0001
+2024-03-10 08:00:00.300 [NAS][DL] Security Mode Command NEA2 NIA2
+2024-03-10 08:00:00.315 [NAS][UL] Security Mode Complete
+2024-03-10 08:00:00.420 [NAS][DL] Registration Accept 5G-GUTI=001010-0-0001 TAC=5001 NSSAI=01
+2024-03-10 08:00:00.430 [NAS][UL] Registration Complete
+2024-03-10 08:00:00.500 [NAS][UL] PDU Session Establishment Request PDU-type=IPv4v6 DNN=internet SST=1
+2024-03-10 08:00:00.750 [NAS][DL] PDU Session Establishment Accept EBI=6 DNN=internet IPv4=10.45.0.1
+2024-03-10 08:00:00.760 [RRC][DL] RRCReconfiguration bearerSetup=DRB1 DNN=internet
+2024-03-10 08:00:00.770 [RRC][UL] RRCReconfigurationComplete
+2024-03-10 08:02:00.000 [PHY][DL] MeasurementReport PCI=101 RSRP=-74 RSRQ=-10 SINR=14 CQI=12 MCS=22 BLER=0.01
+2024-03-10 08:04:00.000 [PHY][DL] MeasurementReport PCI=101 RSRP=-76 RSRQ=-11 SINR=13 CQI=11 MCS=20 BLER=0.02
+2024-03-10 08:06:00.000 [NAS][UL] Periodic Registration Update TAC=5001
+2024-03-10 08:06:00.120 [NAS][DL] Registration Accept TAC=5001
+2024-03-10 08:08:00.000 [PHY][DL] MeasurementReport PCI=101 RSRP=-78 RSRQ=-11 SINR=12 CQI=10 MCS=18 BLER=0.03
+2024-03-10 08:10:00.000 [NAS][UL] Deregistration Request type=normal
+2024-03-10 08:10:00.200 [NAS][DL] Deregistration Accept
+2024-03-10 08:10:00.250 [RRC][DL] RRCRelease cause=other

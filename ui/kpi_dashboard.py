@@ -2,7 +2,7 @@ from __future__ import annotations
 from typing import Sequence
 
 from PyQt6.QtWidgets import (
-    QGridLayout, QGroupBox, QLabel, QScrollArea,
+    QGridLayout, QGroupBox, QHBoxLayout, QLabel, QScrollArea,
     QSizePolicy, QVBoxLayout, QWidget,
 )
 from PyQt6.QtCore import Qt
@@ -11,43 +11,43 @@ from PyQt6.QtWidgets import QFrame
 
 from core.log_entry import AnalysisEvent, RadioMeasurement
 from core.analysis.kpi_engine import compute_kpis, KPIResult
+from ui.theme import KPI_ACCENT, COL_PRIMARY, COL_BG_CARD, COL_BORDER, COL_MUTED
 
 SEVERITY_COLORS = {
-    "INFO":     "#4CAF50",
-    "WARNING":  "#FFC107",
-    "ERROR":    "#F44336",
-    "CRITICAL": "#9C27B0",
+    "INFO":     "#2ed573",
+    "WARNING":  "#ffa502",
+    "ERROR":    "#ff4757",
+    "CRITICAL": "#a55eea",
 }
 
 
 class KPICard(QFrame):
-    def __init__(self, name: str, value: str, unit: str, parent=None):
+    def __init__(self, name: str, value: str, unit: str,
+                 color: str = COL_PRIMARY, parent=None):
         super().__init__(parent)
-        self.setFrameShape(QFrame.Shape.StyledPanel)
-        self.setStyleSheet(
-            "QFrame { background: #F9F9F9; border: 1px solid #DDD; border-radius: 6px; }"
-        )
+        self.setFrameShape(QFrame.Shape.NoFrame)
+        self.setStyleSheet(f"""
+            QFrame {{
+                background-color: {COL_BG_CARD};
+                border: 1px solid {COL_BORDER};
+                border-left: 4px solid {color};
+                border-radius: 8px;
+            }}
+        """)
+
         layout = QVBoxLayout(self)
+        layout.setContentsMargins(12, 10, 12, 10)
+        layout.setSpacing(2)
 
-        name_lbl = QLabel(name)
-        name_lbl.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        name_lbl = QLabel(name.upper())
         name_lbl.setWordWrap(True)
-        small_font = QFont()
-        small_font.setPointSize(8)
-        name_lbl.setFont(small_font)
-        name_lbl.setStyleSheet("color: #666;")
+        name_lbl.setStyleSheet(f"color: {COL_MUTED}; font-size: 7pt; font-weight: bold; letter-spacing: 1px; border: none;")
 
-        val_lbl = QLabel(f"{value}")
-        val_lbl.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        big_font = QFont()
-        big_font.setPointSize(16)
-        big_font.setBold(True)
-        val_lbl.setFont(big_font)
+        val_lbl = QLabel(value)
+        val_lbl.setStyleSheet(f"color: {color}; font-size: 20pt; font-weight: bold; border: none;")
 
         unit_lbl = QLabel(unit)
-        unit_lbl.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        unit_lbl.setStyleSheet("color: #888;")
-        unit_lbl.setFont(small_font)
+        unit_lbl.setStyleSheet(f"color: {COL_MUTED}; font-size: 8pt; border: none;")
 
         layout.addWidget(name_lbl)
         layout.addWidget(val_lbl)
@@ -55,12 +55,12 @@ class KPICard(QFrame):
 
 
 class SeverityBar(QWidget):
-    """Simple horizontal bar chart of event severities."""
+    """Horizontal bar chart of event severities."""
 
     def __init__(self, events: Sequence[AnalysisEvent], parent=None):
         super().__init__(parent)
         layout = QVBoxLayout(self)
-        layout.addWidget(QLabel("Event Severity Distribution"))
+        layout.setSpacing(8)
 
         counts = {"INFO": 0, "WARNING": 0, "ERROR": 0, "CRITICAL": 0}
         for ev in events:
@@ -70,22 +70,37 @@ class SeverityBar(QWidget):
         total = sum(counts.values()) or 1
         for sev, count in counts.items():
             row = QWidget()
-            row_layout = QGridLayout(row)
-            row_layout.setContentsMargins(0, 2, 0, 2)
+            row_layout = QHBoxLayout(row)
+            row_layout.setContentsMargins(0, 0, 0, 0)
+            row_layout.setSpacing(10)
 
-            lbl = QLabel(f"{sev:<12} {count:>5}")
-            lbl.setFixedWidth(140)
-            lbl.setFont(QFont("Monospace", 9))
-
-            bar = QFrame()
-            bar.setFixedHeight(14)
-            pct = count / total
-            bar.setFixedWidth(max(2, int(pct * 200)))
             color = SEVERITY_COLORS.get(sev, "#888")
-            bar.setStyleSheet(f"background-color: {color}; border-radius: 3px;")
 
-            row_layout.addWidget(lbl, 0, 0)
-            row_layout.addWidget(bar, 0, 1)
+            # Severity label
+            sev_lbl = QLabel(sev)
+            sev_lbl.setFixedWidth(70)
+            sev_lbl.setStyleSheet(f"color: {color}; font-size: 8pt; font-weight: bold; border: none;")
+
+            # Count badge
+            count_lbl = QLabel(str(count))
+            count_lbl.setFixedWidth(40)
+            count_lbl.setAlignment(Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter)
+            count_lbl.setStyleSheet(f"color: {color}; font-size: 9pt; font-weight: bold; border: none;")
+
+            # Bar track + fill
+            track = QFrame()
+            track.setFixedHeight(8)
+            track.setStyleSheet(f"background: #252840; border-radius: 4px; border: none;")
+
+            fill = QFrame(track)
+            fill.setFixedHeight(8)
+            pct = count / total
+            fill.setFixedWidth(max(4, int(pct * 180)))
+            fill.setStyleSheet(f"background: {color}; border-radius: 4px; border: none;")
+
+            row_layout.addWidget(sev_lbl)
+            row_layout.addWidget(track, 1)
+            row_layout.addWidget(count_lbl)
             layout.addWidget(row)
 
 
@@ -93,24 +108,36 @@ class CauseCodeTable(QWidget):
     def __init__(self, events: Sequence[AnalysisEvent], parent=None):
         super().__init__(parent)
         layout = QVBoxLayout(self)
-        layout.addWidget(QLabel("Top Failure Cause Codes"))
+        layout.setSpacing(4)
 
         cause_counts: dict[str, int] = {}
         for ev in events:
             if ev.cause_code is not None and ev.severity in ("ERROR", "CRITICAL"):
-                key = f"#{ev.cause_code} — {ev.cause_description}"
+                key = f"#{ev.cause_code}  {ev.cause_description}"
                 cause_counts[key] = cause_counts.get(key, 0) + 1
 
         top = sorted(cause_counts.items(), key=lambda x: -x[1])[:8]
         for cause, count in top:
-            lbl = QLabel(f"  {count:>3}×  {cause}")
-            lbl.setFont(QFont("Monospace", 8))
-            lbl.setStyleSheet("color: #C62828;")
-            lbl.setWordWrap(True)
-            layout.addWidget(lbl)
+            row = QWidget()
+            row_layout = QHBoxLayout(row)
+            row_layout.setContentsMargins(0, 2, 0, 2)
+            badge = QLabel(f" {count}× ")
+            badge.setStyleSheet(
+                "color: white; background: #ff4757; border-radius: 4px; "
+                "font-size: 8pt; font-weight: bold; padding: 1px 4px; border: none;"
+            )
+            badge.setFixedWidth(36)
+            cause_lbl = QLabel(cause)
+            cause_lbl.setStyleSheet("color: #ff8085; font-size: 8pt; border: none;")
+            cause_lbl.setWordWrap(True)
+            row_layout.addWidget(badge)
+            row_layout.addWidget(cause_lbl, 1)
+            layout.addWidget(row)
 
         if not top:
-            layout.addWidget(QLabel("No failures detected"))
+            ok = QLabel("  No failures detected")
+            ok.setStyleSheet("color: #2ed573; font-size: 9pt; border: none;")
+            layout.addWidget(ok)
 
 
 class KPIDashboard(QWidget):
@@ -150,10 +177,12 @@ class KPIDashboard(QWidget):
         # KPI cards grid
         cards_group = QGroupBox("Key Performance Indicators")
         grid = QGridLayout(cards_group)
+        grid.setSpacing(10)
         for i, kpi in enumerate(kpis):
             val = f"{kpi.value:.1f}" if kpi.value != int(kpi.value) else str(int(kpi.value))
-            card = KPICard(kpi.name, val, kpi.unit)
-            card.setFixedSize(160, 90)
+            color = KPI_ACCENT.get(kpi.name, COL_PRIMARY)
+            card = KPICard(kpi.name, val, kpi.unit, color)
+            card.setFixedSize(175, 90)
             grid.addWidget(card, i // 4, i % 4)
         self._content_layout.addWidget(cards_group)
 
@@ -182,8 +211,12 @@ class KPIDashboard(QWidget):
                 radio_items.append(("Avg RSRQ", f"{summary.avg_rsrq():.1f}", "dB"))
             if summary.sinr_values:
                 radio_items.append(("Avg SINR", f"{summary.avg_sinr():.1f}", "dB"))
+            radio_grid.setSpacing(10)
             for i, (name, val, unit) in enumerate(radio_items):
-                radio_grid.addWidget(KPICard(name, val, unit), i // 4, i % 4)
+                color = KPI_ACCENT.get(name, COL_PRIMARY)
+                card = KPICard(name, val, unit, color)
+                card.setFixedSize(175, 90)
+                radio_grid.addWidget(card, i // 4, i % 4)
             self._content_layout.addWidget(radio_group)
 
         self._content_layout.addStretch()

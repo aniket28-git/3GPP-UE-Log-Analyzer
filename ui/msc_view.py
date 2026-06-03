@@ -66,9 +66,9 @@ _MSG_ROUTING: dict[str, tuple[str, str]] = {
     "Rrcrelease":                    ("eNB/gNB", "UE"),
 }
 
-SUCCESS_COLOR = QColor("#388E3C")
-FAILURE_COLOR = QColor("#D32F2F")
-DEFAULT_COLOR = QColor("#1565C0")
+SUCCESS_COLOR = QColor("#2ed573")
+FAILURE_COLOR = QColor("#ff4757")
+DEFAULT_COLOR = QColor("#4a80f0")
 
 
 class MSCView(QWidget):
@@ -81,6 +81,7 @@ class MSCView(QWidget):
         self._view = QGraphicsView(self._scene)
         self._view.setRenderHint(QPainter.RenderHint.Antialiasing)
         self._view.setDragMode(QGraphicsView.DragMode.ScrollHandDrag)
+        self._view.setBackgroundBrush(QBrush(QColor("#181b2d")))
         layout.addWidget(self._view)
 
     def load(self, entries: Sequence[LogEntry]):
@@ -92,19 +93,20 @@ class MSCView(QWidget):
 
         # Draw entity headers
         for name, x in ENTITY_X.items():
-            box = self._scene.addRect(x - 50, 5, 100, 24)
-            box.setBrush(QBrush(QColor("#1565C0")))
+            box = self._scene.addRect(x - 55, 5, 110, 26)
+            box.setBrush(QBrush(QColor("#252840")))
+            box.setPen(QPen(QColor("#4a80f0"), 1.5))
             lbl = QGraphicsTextItem(name)
-            lbl.setDefaultTextColor(QColor("white"))
-            lbl.setFont(QFont("Arial", 9, QFont.Weight.Bold))
-            lbl.setPos(x - 40, 8)
+            lbl.setDefaultTextColor(QColor("#4a80f0"))
+            lbl.setFont(QFont("Segoe UI", 9, QFont.Weight.Bold))
+            lbl.setPos(x - 45, 8)
             self._scene.addItem(lbl)
 
         # Draw vertical entity lifelines
         total_h = FIRST_MSG_Y + len(sorted_entries) * LINE_SPACING + 40
         for x in ENTITY_X.values():
-            line = self._scene.addLine(x, 30, x, total_h)
-            line.setPen(QPen(QColor("#BBBBBB"), 1, Qt.PenStyle.DashLine))
+            line = self._scene.addLine(x, 32, x, total_h)
+            line.setPen(QPen(QColor("#2a2f4a"), 1, Qt.PenStyle.DashLine))
 
         # Draw message arrows
         y = FIRST_MSG_Y

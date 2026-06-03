@@ -1,0 +1,20 @@
+2024-03-16 18:00:00.000 [RRC][DL] RRCSetup PCI=200 EARFCN=504990 Band=1 RSRP=-88 RSRQ=-14 SINR=4
+2024-03-16 18:00:00.020 [RRC][UL] RRCSetupComplete
+2024-03-16 18:00:00.050 [NAS][UL] Registration Request type=initial SUCI=0011020098765432 MCC=001 MNC=01
+2024-03-16 18:00:00.250 [NAS][DL] Registration Reject Cause #11
+2024-03-16 18:00:05.000 [NAS][UL] Registration Request type=initial SUCI=0011020098765432 MCC=001 MNC=01
+2024-03-16 18:00:05.200 [NAS][DL] Registration Reject Cause #15
+2024-03-16 18:00:10.000 [NAS][UL] Registration Request type=initial SUCI=0011020098765432 MCC=001 MNC=01
+2024-03-16 18:00:10.200 [NAS][DL] Authentication Request 5G-AKA ngKSI=2
+2024-03-16 18:00:10.215 [NAS][UL] Authentication Failure Cause #20
+2024-03-16 18:00:10.300 [NAS][DL] Authentication Request 5G-AKA ngKSI=3
+2024-03-16 18:00:10.315 [NAS][UL] Authentication Failure Cause #21
+2024-03-16 18:00:10.400 [NAS][DL] Registration Reject Cause #23
+2024-03-16 18:00:20.000 [NAS][UL] Registration Request type=initial SUCI=0011020098765432 MCC=001 MNC=01
+2024-03-16 18:00:20.200 [NAS][DL] Authentication Request 5G-AKA ngKSI=0
+2024-03-16 18:00:20.215 [NAS][UL] Authentication Response RES=aabbccddeeff0000
+2024-03-16 18:00:20.260 [NAS][DL] Security Mode Command NEA1 NIA1
+2024-03-16 18:00:20.275 [NAS][UL] Security Mode Reject Cause #24
+2024-03-16 18:00:20.350 [NAS][DL] Registration Reject Cause #24
+2024-03-16 18:00:30.000 [PHY][DL] MeasurementReport PCI=200 RSRP=-90 RSRQ=-15 SINR=2 CQI=3 MCS=4 BLER=0.30
+2024-03-16 18:00:35.000 [RRC][DL] RRCRelease cause=other

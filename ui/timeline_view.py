@@ -10,12 +10,13 @@ from PyQt6.QtWidgets import (
 )
 
 from core.log_entry import AnalysisEvent
+from ui.theme import LANE_BG_EVEN, LANE_BG_ODD, LANE_GRID, LANE_LABEL
 
 SEVERITY_COLORS = {
-    "INFO":     QColor("#4CAF50"),
-    "WARNING":  QColor("#FFC107"),
-    "ERROR":    QColor("#F44336"),
-    "CRITICAL": QColor("#9C27B0"),
+    "INFO":     QColor("#2ed573"),
+    "WARNING":  QColor("#ffa502"),
+    "ERROR":    QColor("#ff4757"),
+    "CRITICAL": QColor("#a55eea"),
 }
 
 LAYER_Y: dict[str, int] = {
@@ -58,6 +59,7 @@ class TimelineView(QWidget):
         self._view = QGraphicsView(self._scene)
         self._view.setRenderHint(QPainter.RenderHint.Antialiasing)
         self._view.setDragMode(QGraphicsView.DragMode.ScrollHandDrag)
+        self._view.setBackgroundBrush(QBrush(QColor("#181b2d")))
         self._view.wheelEvent = self._wheel_event
         self._view.mousePressEvent = self._mouse_press
         layout.addWidget(self._view)
@@ -90,36 +92,32 @@ class TimelineView(QWidget):
         # Draw lane backgrounds and labels
         layers = list(LAYER_Y.keys())
         for layer, y in LAYER_Y.items():
-            # Lane background
-            bg = QColor("#F5F5F5") if layers.index(layer) % 2 == 0 else QColor("#EEEEEE")
+            bg = QColor(LANE_BG_EVEN if layers.index(layer) % 2 == 0 else LANE_BG_ODD)
             rect = self._scene.addRect(0, y - LANE_HEIGHT // 2, width, LANE_HEIGHT)
             rect.setBrush(QBrush(bg))
             rect.setPen(QPen(Qt.GlobalColor.transparent))
             rect.setZValue(0)
 
-            # Lane label
             lbl = QGraphicsTextItem(layer)
             lbl.setPos(-60, y - 10)
-            lbl.setDefaultTextColor(QColor("#555"))
-            font = QFont("Monospace", 8, QFont.Weight.Bold)
+            lbl.setDefaultTextColor(QColor(LANE_LABEL))
+            font = QFont("Segoe UI", 8, QFont.Weight.Bold)
             lbl.setFont(font)
             lbl.setZValue(1)
             self._scene.addItem(lbl)
 
-            # Separator line
             line = self._scene.addLine(0, y + LANE_HEIGHT // 2, width, y + LANE_HEIGHT // 2)
-            line.setPen(QPen(QColor("#CCCCCC"), 0.5))
+            line.setPen(QPen(QColor(LANE_GRID), 1.0))
             line.setZValue(1)
 
-        # Draw time axis ticks every ~60px
+        # Draw time axis ticks
         tick_interval_sec = max(1, int(total_sec / (width / 60)))
-        t = t_min
         import math
         tick_sec = 0
         while tick_sec <= total_sec:
             x = tick_sec / total_sec * width
             tick_line = self._scene.addLine(x, 0, x, 320)
-            tick_line.setPen(QPen(QColor("#DDDDDD"), 0.5, Qt.PenStyle.DashLine))
+            tick_line.setPen(QPen(QColor("#252840"), 0.8, Qt.PenStyle.DashLine))
             tick_line.setZValue(0)
             tick_sec += tick_interval_sec
 

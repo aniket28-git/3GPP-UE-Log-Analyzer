@@ -1,0 +1,32 @@
+2024-03-15 22:00:00.000 [RRC][DL] RRCConnectionSetup PCI=33 EARFCN=900 RSRP=-83 RSRQ=-12 SINR=7
+2024-03-15 22:00:00.015 [RRC][UL] RRCConnectionSetupComplete
+2024-03-15 22:00:00.050 [NAS][UL] Attach Request IMSI=001010777888999 PDN type=IPv4 APN=internet
+2024-03-15 22:00:00.300 [NAS][DL] Authentication Request
+2024-03-15 22:00:00.315 [NAS][UL] Authentication Failure Cause #21
+2024-03-15 22:00:00.400 [NAS][DL] Authentication Request
+2024-03-15 22:00:00.415 [NAS][UL] Authentication Failure Cause #21
+2024-03-15 22:00:00.500 [NAS][DL] Authentication Request
+2024-03-15 22:00:00.515 [NAS][UL] Authentication Response
+2024-03-15 22:00:00.560 [NAS][DL] Security Mode Command EEA0 EIA1
+2024-03-15 22:00:00.575 [NAS][UL] Security Mode Complete
+2024-03-15 22:00:00.700 [NAS][DL] Attach Accept GUTI=001010-0-0033 TAC=7001
+2024-03-15 22:00:00.710 [NAS][UL] Attach Complete
+2024-03-15 22:00:00.750 [NAS][DL] Activate Default EPS Bearer Context Request EBI=5 APN=internet
+2024-03-15 22:01:00.000 [PHY][DL] MeasurementReport PCI=33 RSRP=-85 RSRQ=-13 SINR=6 CQI=7 MCS=11 BLER=0.07
+2024-03-15 22:02:00.000 [PHY][DL] MeasurementReport PCI=33 RSRP=-90 RSRQ=-15 SINR=3 CQI=5 MCS=7 BLER=0.15
+2024-03-15 22:03:00.000 [PHY][DL] MeasurementReport PCI=33 RSRP=-96 RSRQ=-17 SINR=-1 CQI=2 MCS=3 BLER=0.38
+2024-03-15 22:03:30.000 [PHY][DL] MeasurementReport PCI=33 RSRP=-103 RSRQ=-20 SINR=-5 CQI=1 MCS=0 BLER=0.72
+2024-03-15 22:03:35.000 [RRC][UL] RRCConnectionReestablishmentRequest failureCause=rlc-MaxNumRetx PCI=33 EARFCN=900
+2024-03-15 22:03:35.500 [RRC][DL] RRCConnectionReestablishmentReject
+2024-03-15 22:03:40.000 [RRC][UL] RRCConnectionReestablishmentRequest failureCause=t310-Expiry PCI=33 EARFCN=900
+2024-03-15 22:03:40.500 [RRC][DL] RRCConnectionReestablishmentReject
+2024-03-15 22:03:50.000 [NAS][UL] Attach Request IMSI=001010777888999 PDN type=IPv4 APN=internet
+2024-03-15 22:03:50.200 [NAS][DL] Attach Reject Cause #17
+2024-03-15 22:03:55.000 [NAS][UL] Attach Request IMSI=001010777888999 PDN type=IPv4 APN=internet
+2024-03-15 22:03:55.200 [NAS][DL] Attach Reject Cause #22
+2024-03-15 22:04:00.000 [NAS][UL] Attach Request IMSI=001010777888999 PDN type=IPv4 APN=internet
+2024-03-15 22:04:00.200 [NAS][DL] Attach Reject Cause #42
+2024-03-15 22:04:05.000 [RRC][UL] RRCConnectionRequest cause=emergency PCI=33
+2024-03-15 22:04:05.500 [RRC][DL] RRCConnectionReject waitTime=30
+2024-03-15 22:04:36.000 [RRC][UL] RRCConnectionRequest cause=emergency PCI=33
+2024-03-15 22:04:36.500 [RRC][DL] RRCConnectionReject waitTime=60

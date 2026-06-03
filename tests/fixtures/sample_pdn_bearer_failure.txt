@@ -1,0 +1,23 @@
+2024-03-12 10:00:00.000 [RRC][DL] RRCConnectionSetup PCI=77 EARFCN=2400 RSRP=-82 RSRQ=-11 SINR=9
+2024-03-12 10:00:00.015 [RRC][UL] RRCConnectionSetupComplete
+2024-03-12 10:00:00.050 [NAS][UL] Attach Request IMSI=001010555666777 PDN type=IPv4v6 APN=ims
+2024-03-12 10:00:00.200 [NAS][DL] Authentication Request
+2024-03-12 10:00:00.215 [NAS][UL] Authentication Response
+2024-03-12 10:00:00.260 [NAS][DL] Security Mode Command EEA1 EIA1
+2024-03-12 10:00:00.275 [NAS][UL] Security Mode Complete
+2024-03-12 10:00:00.350 [NAS][DL] Attach Accept GUTI=001010-0-0077 TAC=3001
+2024-03-12 10:00:00.360 [NAS][UL] Attach Complete
+2024-03-12 10:00:00.400 [NAS][DL] Activate Default EPS Bearer Context Request EBI=5 APN=internet
+2024-03-12 10:00:30.000 [NAS][UL] PDN Connectivity Request APN=ims PDN type=IPv6
+2024-03-12 10:00:30.200 [NAS][DL] PDN Connectivity Reject Cause #29 APN=ims
+2024-03-12 10:00:35.000 [NAS][UL] PDN Connectivity Request APN=ims PDN type=IPv4v6
+2024-03-12 10:00:35.200 [NAS][DL] PDN Connectivity Reject Cause #27 APN=ims
+2024-03-12 10:00:40.000 [NAS][UL] PDN Connectivity Request APN=mms PDN type=IPv4
+2024-03-12 10:00:40.200 [NAS][DL] PDN Connectivity Reject Cause #33 APN=mms
+2024-03-12 10:01:00.000 [NAS][UL] Activate Dedicated EPS Bearer Context Request EBI=6 APN=internet QCI=5
+2024-03-12 10:01:00.200 [NAS][DL] Activate Dedicated EPS Bearer Context Reject Cause #37
+2024-03-12 10:01:30.000 [PHY][DL] MeasurementReport PCI=77 RSRP=-84 RSRQ=-12 SINR=8 CQI=9 MCS=15 BLER=0.04
+2024-03-12 10:02:00.000 [NAS][UL] PDN Connectivity Request APN=internet PDN type=IPv4
+2024-03-12 10:02:00.150 [NAS][DL] Activate Default EPS Bearer Context Request EBI=7 APN=internet
+2024-03-12 10:03:00.000 [NAS][UL] Detach Request
+2024-03-12 10:03:00.200 [NAS][DL] Detach Accept

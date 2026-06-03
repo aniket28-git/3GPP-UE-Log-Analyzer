@@ -5,11 +5,11 @@ import os
 from pathlib import Path
 
 from PyQt6.QtCore import Qt, QThread, pyqtSignal
-from PyQt6.QtGui import QAction, QColor
+from PyQt6.QtGui import QAction, QColor, QFont
 from PyQt6.QtWidgets import (
-    QApplication, QFileDialog, QHBoxLayout, QLabel, QMainWindow,
+    QApplication, QFileDialog, QFrame, QHBoxLayout, QLabel, QMainWindow,
     QMessageBox, QProgressBar, QPushButton, QSplitter, QStatusBar,
-    QTabWidget, QVBoxLayout, QWidget,
+    QTabWidget, QToolBar, QVBoxLayout, QWidget,
 )
 
 from core.ingestion.loader import load_log
@@ -87,6 +87,7 @@ class MainWindow(QMainWindow):
         self._loaded_files: list[str] = []
 
         self._build_menu()
+        self._build_toolbar()
         self._build_ui()
         self._build_status_bar()
 
@@ -128,14 +129,82 @@ class MainWindow(QMainWindow):
         about_act.triggered.connect(self._show_about)
         help_menu.addAction(about_act)
 
+    # ── Toolbar ───────────────────────────────────────────────────────────
+
+    def _build_toolbar(self):
+        tb = QToolBar("Main Toolbar")
+        tb.setMovable(False)
+        self.addToolBar(tb)
+
+        open_btn = QPushButton("  Open Log File")
+        open_btn.setStyleSheet(
+            "QPushButton { background: #4a80f0; color: white; border-radius: 5px; "
+            "padding: 5px 14px; font-weight: bold; }"
+            "QPushButton:hover { background: #6097ff; }"
+        )
+        open_btn.clicked.connect(self._open_file)
+        tb.addWidget(open_btn)
+
+        tb.addSeparator()
+
+        fit_btn = QPushButton("Fit Timeline")
+        fit_btn.setProperty("flat", "true")
+        fit_btn.clicked.connect(self._fit_timeline)
+        tb.addWidget(fit_btn)
+
+        # Stretch + stat chips on the right
+        spacer = QWidget()
+        spacer.setSizePolicy(
+            spacer.sizePolicy().horizontalPolicy(),
+            spacer.sizePolicy().verticalPolicy(),
+        )
+        from PyQt6.QtWidgets import QSizePolicy
+        spacer.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Preferred)
+        tb.addWidget(spacer)
+
+        self._chip_msgs    = self._make_chip("Messages", "0",   "#4a80f0")
+        self._chip_events  = self._make_chip("Events",   "0",   "#2ed573")
+        self._chip_errors  = self._make_chip("Errors",   "0",   "#ff4757")
+        tb.addWidget(self._chip_msgs)
+        tb.addWidget(self._chip_events)
+        tb.addWidget(self._chip_errors)
+
+    def _make_chip(self, label: str, value: str, color: str) -> QFrame:
+        frame = QFrame()
+        frame.setStyleSheet(
+            f"QFrame {{ background: #1e2130; border: 1px solid {color}; "
+            f"border-radius: 5px; padding: 2px 8px; }}"
+        )
+        layout = QHBoxLayout(frame)
+        layout.setContentsMargins(6, 2, 6, 2)
+        layout.setSpacing(6)
+
+        lbl = QLabel(label)
+        lbl.setStyleSheet(f"color: #5a6898; font-size: 8pt; border: none;")
+        val = QLabel(value)
+        val.setStyleSheet(f"color: {color}; font-size: 10pt; font-weight: bold; border: none;")
+        val.setObjectName("chip_value")
+
+        layout.addWidget(lbl)
+        layout.addWidget(val)
+        frame.setFixedHeight(32)
+        return frame
+
+    def _update_chips(self, n_msgs: int, n_events: int, n_errors: int):
+        def _set(chip: QFrame, val: str):
+            chip.findChild(QLabel, "chip_value").setText(val)
+        _set(self._chip_msgs,   str(n_msgs))
+        _set(self._chip_events, str(n_events))
+        _set(self._chip_errors, str(n_errors))
+
     # ── UI Layout ─────────────────────────────────────────────────────────
 
     def _build_ui(self):
         central = QWidget()
         self.setCentralWidget(central)
         root_layout = QVBoxLayout(central)
-        root_layout.setContentsMargins(4, 4, 4, 4)
-        root_layout.setSpacing(4)
+        root_layout.setContentsMargins(6, 6, 6, 6)
+        root_layout.setSpacing(6)
 
         # Top splitter: (left sidebar) | (timeline + detail)
         h_split = QSplitter(Qt.Orientation.Horizontal)
@@ -233,9 +302,20 @@ class MainWindow(QMainWindow):
         self._all_entries.extend(entries)
         self._all_events.extend(events)
         self._all_measurements.extend(measurements)
-        self._loaded_files.append(path)
 
         fmt = detect_format(path)
+
+        if path not in self._loaded_files:
+            lf = self._repo.save_log_file(path, fmt)
+            rows = self._repo.save_entries(entries, lf.id)
+            entry_id_map = {id(entry): row.id for entry, row in zip(entries, rows)}
+            self._repo.save_events(events, entry_id_map)
+            self._repo.save_measurements(measurements, entry_id_map)
+            kpis = compute_kpis(events, measurements).to_kpi_list()
+            if kpis:
+                self._repo.save_kpis(kpis)
+
+        self._loaded_files.append(path)
         self.file_panel.add_file(path, fmt, len(entries))
 
         self.timeline.load_events(self._all_events)
@@ -246,6 +326,9 @@ class MainWindow(QMainWindow):
         )
 
         n_err = sum(1 for e in events if e.severity in ("ERROR", "CRITICAL"))
+        total_msgs = len(self._all_entries)
+        total_evs  = len(self._all_events)
+        self._update_chips(total_msgs, total_evs, n_err)
         self._status_label.setText(
             f"Loaded {len(entries)} messages, {len(events)} events "
             f"({n_err} errors/criticals)"

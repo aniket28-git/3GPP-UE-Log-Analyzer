@@ -1,0 +1,26 @@
+2024-03-13 14:00:00.000 [RRC][DL] RRCConnectionSetup PCI=10 EARFCN=500 RSRP=-75 RSRQ=-9 SINR=14
+2024-03-13 14:00:00.015 [RRC][UL] RRCConnectionSetupComplete
+2024-03-13 14:00:00.050 [NAS][UL] Attach Request IMSI=001010112233445 PDN type=IPv4 APN=internet
+2024-03-13 14:00:00.300 [NAS][DL] Authentication Request
+2024-03-13 14:00:00.315 [NAS][UL] Authentication Response
+2024-03-13 14:00:00.360 [NAS][DL] Security Mode Command EEA2 EIA2
+2024-03-13 14:00:00.375 [NAS][UL] Security Mode Complete
+2024-03-13 14:00:00.450 [NAS][DL] Attach Accept GUTI=001010-0-0010 TAC=4001
+2024-03-13 14:00:00.460 [NAS][UL] Attach Complete
+2024-03-13 14:00:00.500 [NAS][DL] Activate Default EPS Bearer Context Request EBI=5 APN=internet
+2024-03-13 14:01:00.000 [PHY][DL] MeasurementReport PCI=10 RSRP=-76 RSRQ=-9 SINR=13 CQI=13 MCS=24 BLER=0.01
+2024-03-13 14:02:00.000 [PHY][DL] MeasurementReport PCI=10 RSRP=-79 RSRQ=-11 SINR=11 CQI=11 MCS=20 BLER=0.02
+2024-03-13 14:03:00.000 [PHY][DL] MeasurementReport PCI=10 RSRP=-85 RSRQ=-13 SINR=7 CQI=8 MCS=13 BLER=0.06
+2024-03-13 14:04:00.000 [PHY][DL] MeasurementReport PCI=10 RSRP=-92 RSRQ=-16 SINR=2 CQI=5 MCS=7 BLER=0.18
+2024-03-13 14:04:30.000 [PHY][DL] MeasurementReport PCI=10 RSRP=-100 RSRQ=-19 SINR=-4 CQI=1 MCS=0 BLER=0.55
+2024-03-13 14:04:35.000 [RRC][UL] RRCConnectionReestablishmentRequest failureCause=rlc-MaxNumRetx PCI=10 EARFCN=500
+2024-03-13 14:04:35.300 [RRC][DL] RRCConnectionReestablishment PCI=10 EARFCN=500
+2024-03-13 14:04:35.315 [RRC][UL] RRCConnectionReestablishmentComplete
+2024-03-13 14:04:35.400 [RRC][DL] RRCConnectionReconfiguration measConfig=setup
+2024-03-13 14:04:35.415 [RRC][UL] RRCConnectionReconfigurationComplete
+2024-03-13 14:04:35.500 [NAS][UL] Tracking Area Update Request TAC=4001
+2024-03-13 14:04:35.700 [NAS][DL] Tracking Area Update Accept TAC=4001
+2024-03-13 14:05:00.000 [PHY][DL] MeasurementReport PCI=10 RSRP=-80 RSRQ=-11 SINR=10 CQI=10 MCS=17 BLER=0.03
+2024-03-13 14:06:00.000 [PHY][DL] MeasurementReport PCI=10 RSRP=-78 RSRQ=-10 SINR=12 CQI=12 MCS=21 BLER=0.02
+2024-03-13 14:10:00.000 [NAS][UL] Detach Request
+2024-03-13 14:10:00.200 [NAS][DL] Detach Accept

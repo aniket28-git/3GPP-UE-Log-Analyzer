@@ -55,6 +55,7 @@ class FilterPanel(QGroupBox):
         apply_btn = QPushButton("Apply")
         apply_btn.clicked.connect(self._emit_filters)
         reset_btn = QPushButton("Reset")
+        reset_btn.setProperty("flat", "true")
         reset_btn.clicked.connect(self._reset)
         btn_row.addWidget(apply_btn)
         btn_row.addWidget(reset_btn)

@@ -7,6 +7,8 @@ from typing import Iterator
 from core.log_entry import LogEntry
 
 # Common timestamp patterns found in modem text logs
+_BRACKET_TOKEN_RE = re.compile(r"\[[A-Za-z0-9]+\]")
+
 _TS_PATTERNS = [
     # 2024-01-15 10:23:45.123
     re.compile(r"(\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2}:\d{2}[.,]\d+)"),
@@ -80,6 +82,16 @@ _RRC_MESSAGES = {
 }
 
 
+def _strip_header(line: str) -> str:
+    """Return the message content after removing timestamp and [LAYER][DIR] tokens."""
+    for pat in _TS_PATTERNS:
+        stripped = pat.sub("", line, count=1)
+        if stripped != line:
+            line = stripped.strip()
+            break
+    return _BRACKET_TOKEN_RE.sub("", line).strip()
+
+
 def _parse_timestamp(line: str) -> datetime | None:
     for pattern, fmt in zip(_TS_PATTERNS, _TS_FORMATS):
         m = pattern.search(line)
@@ -147,7 +159,7 @@ def read_text_log(path: str | Path) -> Iterator[LogEntry]:
         ts = _parse_timestamp(full) or last_ts
         layer = _detect_layer(full)
         direction = _detect_direction(full)
-        msg_type = _detect_message_type(full)
+        msg_type = _strip_header(full) or _detect_message_type(full)
 
         # Try to extract hex payload if present
         hex_match = re.search(r"([0-9A-Fa-f]{2}\s?){4,}", full)
