@@ -45,3 +45,46 @@ def test_rlf_cluster_detected():
 
 def test_no_anomalies_on_empty():
     assert detect_anomalies([]) == []
+
+
+def test_t3410_expiry_detected():
+    timer_ev = AnalysisEvent(
+        timestamp=datetime(2024, 1, 15, 10, 0, 0),
+        event_type="Timer",
+        severity="ERROR",
+        description="T3410 timer expiry detected",
+    )
+    anomalies = detect_anomalies([timer_ev])
+    types = [a.event_type for a in anomalies]
+    assert "Timer Expiry" in types
+
+
+def test_signaling_storm_detected():
+    from datetime import timedelta as _td
+    base = datetime(2024, 1, 15, 10, 0, 0)
+    events = [
+        AnalysisEvent(
+            timestamp=base + _td(milliseconds=i * 10),
+            event_type="Signal",
+            severity="INFO",
+            description="",
+        )
+        for i in range(51)
+    ]
+    anomalies = detect_anomalies(events)
+    types = [a.event_type for a in anomalies]
+    assert "Signaling Storm" in types
+
+
+def test_repeated_registration_failures_detected():
+    events = [_ev("Registration Failure", offset_sec=i * 60) for i in range(3)]
+    anomalies = detect_anomalies(events)
+    types = [a.event_type for a in anomalies]
+    assert "Repeated Attach Failures" in types
+
+
+def test_no_rlf_cluster_for_single_rlf():
+    events = [_ev("RLF", "ERROR", offset_sec=0)]
+    anomalies = detect_anomalies(events)
+    types = [a.event_type for a in anomalies]
+    assert "RLF Cluster" not in types

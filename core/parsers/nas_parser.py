@@ -131,7 +131,7 @@ _BEARER_ID_RE = re.compile(r"EBI[:\s=]+(\d+)|Bearer\s+ID[:\s=]+(\d+)", re.I)
 _CAUSE_RE = re.compile(r"[Cc]ause[:\s=#]+(\d+)")
 _MCC_MNC_RE = re.compile(r"MCC[:\s=]+(\d{3}).*?MNC[:\s=]+(\d{2,3})")
 _TAC_RE = re.compile(r"TAC[:\s=]+([0-9A-Fa-f]+)")
-_PDN_TYPE_RE = re.compile(r"PDN\s+[Tt]ype[:\s=]+(IPv4|IPv6|IPv4v6|Non-IP)", re.I)
+_PDN_TYPE_RE = re.compile(r"PDN\s+[Tt]ype[:\s=]+(IPv4v6|IPv4|IPv6|Non-IP)", re.I)
 _SEC_ALG_RE = re.compile(
     r"(EEA\d|EIA\d|NIA\d|NEA\d|128-EEA\d|128-EIA\d)", re.I
 )

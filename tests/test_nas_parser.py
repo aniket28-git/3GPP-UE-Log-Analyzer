@@ -71,3 +71,60 @@ def test_security_algorithms():
     entry = _entry("Security Mode Command EEA2 EIA2")
     fields = parse_nas_fields(entry)
     assert "EEA2" in fields.get("security_algorithms", [])
+
+
+def test_esm_cause_unknown():
+    result = get_esm_cause(999)
+    assert "#999" in result
+
+
+def test_5gmm_cause_unknown():
+    result = get_5gmm_cause(999)
+    assert "#999" in result
+
+
+def test_parse_guti():
+    entry = _entry("Attach Accept GUTI=001010-0-0001")
+    fields = parse_nas_fields(entry)
+    assert fields.get("guti") == "001010-0-0001"
+
+
+def test_parse_dnn():
+    entry = _entry("PDU Session Establishment Request DNN=internet.5g")
+    fields = parse_nas_fields(entry)
+    assert fields.get("dnn") == "internet.5g"
+
+
+def test_parse_bearer_id():
+    entry = _entry("Activate Default EPS Bearer Context Request EBI=5")
+    fields = parse_nas_fields(entry)
+    assert fields.get("bearer_id") == 5
+
+
+def test_parse_pdn_type():
+    entry = _entry("Attach Request PDN type=IPv4v6")
+    fields = parse_nas_fields(entry)
+    assert fields.get("pdn_type") == "IPv4v6"
+
+
+def test_parse_5gmm_cause_code():
+    entry = _entry("5G Registration Reject Cause #22")
+    fields = parse_nas_fields(entry)
+    assert fields.get("cause_code") == 22
+    assert "Congestion" in fields.get("cause_description", "")
+
+
+def test_enrich_entry_rrc_layer_not_enriched():
+    entry = _entry("RRCSetup")
+    entry.layer = "RRC"
+    enrich_entry(entry)
+    assert "imsi" not in entry.decoded
+    assert "cause_code" not in entry.decoded
+
+
+def test_parse_no_fields_returns_empty():
+    entry = _entry("Unknown message with no parseable fields XYZ")
+    fields = parse_nas_fields(entry)
+    assert isinstance(fields, dict)
+    assert "imsi" not in fields
+    assert "cause_code" not in fields
